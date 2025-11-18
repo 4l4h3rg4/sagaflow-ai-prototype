@@ -18,6 +18,7 @@ export interface Saga {
   objectives: MissionObjective[];
   missionRules?: string;
   callToAction: string;
+  imageUrl?: string; // New field for the generated scenario image
 }
 
 export interface Feedback {

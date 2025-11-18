@@ -114,7 +114,7 @@ const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, on
 
   return (
     <div className="bg-[var(--color-card-bg)] p-6 rounded-lg border border-[var(--color-border)] backdrop-blur-md space-y-6">
-      <div>
+      <div id="tour-theme">
         <div className="flex justify-between items-center mb-2">
             <label htmlFor="theme" className="block text-sm font-medium text-[var(--color-accent)] font-cinzel tracking-wide">{t('inputSection.themeLabel', language)}</label>
             <div className="relative" ref={dropdownRef}>
@@ -165,7 +165,7 @@ const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, on
         `}</style>
       </div>
 
-      <div>
+      <div id="tour-tasks">
         <label className="block text-sm font-medium text-[var(--color-accent)] mb-2 font-cinzel tracking-wide">{t('inputSection.tasksLabel', language)}</label>
         <div className="space-y-2">
           {sagaInput.tasks.map((task, index) => (
@@ -248,6 +248,7 @@ const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, on
 
       <div className="flex items-stretch gap-3">
         <button
+          id="tour-generate"
           onClick={onGenerate}
           disabled={isLoading}
           className="flex-1 w-full flex items-center justify-center gap-3 gradient-button text-white font-bold py-3 px-4 rounded-md transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"

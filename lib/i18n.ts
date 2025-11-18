@@ -1,3 +1,4 @@
+
 export const placeholderSagas = {
   en: [
     {
@@ -128,6 +129,34 @@ const translations = {
     settings: {
       theme: "Theme",
       language: "Language",
+      tutorial: "Replay Tutorial",
+    },
+    tutorial: {
+      next: "Next",
+      skip: "Skip",
+      finish: "Finish",
+      steps: [
+        {
+          title: "Welcome to SagaFlow",
+          content: "Productivity meets epic storytelling. Let me show you how to turn your chores into legends.",
+        },
+        {
+          title: "Choose Your World",
+          content: "Start by defining the universe. Cyberpunk? Medieval Fantasy? Or simply 'The Office'. The AI adapts to anything.",
+        },
+        {
+          title: "Define Your Missions",
+          content: "List your real-world tasks here. 'Wash dishes', 'Send report', etc. These will become your heroic objectives.",
+        },
+        {
+          title: "Ignite the Saga",
+          content: "Click generate and watch as Gemini rewrites your boring list into a high-stakes narrative adventure.",
+        },
+        {
+          title: "Fulfill Your Destiny",
+          content: "Your mission appears here. As you check off tasks in real life, check them off here to receive epic feedback and track your feats.",
+        },
+      ],
     },
   },
   es: {
@@ -192,13 +221,41 @@ const translations = {
     settings: {
       theme: "Tema",
       language: "Idioma",
+      tutorial: "Ver Tutorial",
+    },
+    tutorial: {
+      next: "Siguiente",
+      skip: "Saltar",
+      finish: "Finalizar",
+      steps: [
+        {
+          title: "Bienvenido a SagaFlow",
+          content: "Donde la productividad encuentra la narrativa épica. Déjame mostrarte cómo convertir tus quehaceres en leyendas.",
+        },
+        {
+          title: "Elige tu Mundo",
+          content: "Define tu universo. ¿Cyberpunk? ¿Fantasía Medieval? ¿La Oficina? La IA se adaptará a cualquier cosa.",
+        },
+        {
+          title: "Define tus Misiones",
+          content: "Lista tus tareas reales aquí. 'Lavar platos', 'Enviar informe'. Estas se convertirán en tus objetivos heroicos.",
+        },
+        {
+          title: "Inicia la Saga",
+          content: "Haz clic en generar y observa cómo Gemini reescribe tu aburrida lista en una aventura de alto riesgo.",
+        },
+        {
+          title: "Cumple tu Destino",
+          content: "Tu misión aparecerá aquí. Al completar tareas en la vida real, márcalas aquí para recibir feedback épico y registrar tus hazañas.",
+        },
+      ],
     },
   },
 };
 
 type Language = keyof typeof translations;
 
-export const t = (key: string, lang: Language): string => {
+export const t = (key: string, lang: Language): any => {
   const keys = key.split('.');
   
   const findTranslation = (language: Language) => {
@@ -222,7 +279,12 @@ export const t = (key: string, lang: Language): string => {
   }
 
   if (Array.isArray(result)) {
-    return result[Math.floor(Math.random() * result.length)];
+    // Only return a random element if it's an array of strings (flavor text).
+    // If it contains objects (like tutorial steps), return the full array.
+    if (result.length > 0 && typeof result[0] === 'string') {
+      return result[Math.floor(Math.random() * result.length)];
+    }
+    return result;
   }
 
   return result;
