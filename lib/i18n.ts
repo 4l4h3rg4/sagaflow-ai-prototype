@@ -3,66 +3,18 @@ export const placeholderSagas = {
   en: [
     {
       theme: "e.g., High Fantasy, the lands of Middle-earth",
-      task: "e.g., Go grocery shopping",
+      task: "e.g., Finish 1500-word History essay",
       role: "e.g., A Ranger of the North on a vital patrol",
-      rule: "e.g., Take a 10-minute break",
-    },
-    {
-      theme: "e.g., Space Opera, a galaxy far, far away",
-      task: "e.g., Plan the week's meals",
-      role: "e.g., A Jedi Knight deciphering ancient holocrons",
-      rule: "e.g., Drink a glass of water",
-    },
-    {
-      theme: "e.g., Cyberpunk world, the neon-drenched Night City",
-      task: "e.g., Reply to pending emails",
-      role: "e.g., A street samurai on a corporate espionage gig",
-      rule: "e.g., Stretch for 2 minutes",
-    },
-    {
-      theme: "e.g., Post-Apocalyptic, the Capital Wasteland",
-      task: "e.g., Clean the kitchen",
-      role: "e.g., A Lone Wanderer scavenging for supplies",
-      rule: "e.g., Listen to one song",
-    },
-    {
-      theme: "e.g., Wizarding World, Hogwarts School",
-      task: "e.g., Study for an exam",
-      role: "e.g., An Auror investigating a dark magic disturbance",
-      rule: "e.g., Eat a healthy snack",
-    },
+      rule: "e.g., Turn off phone notifications",
+    }
   ],
   es: [
     {
       theme: "Ej: Alta Fantasía, las tierras de la Tierra Media",
-      task: "Ej: Hacer la compra",
+      task: "Ej: Terminar ensayo de Historia de 1500 palabras",
       role: "Ej: Un Montaraz del Norte en una patrulla vital",
-      rule: "Ej: Descansar 10 minutos",
-    },
-    {
-      theme: "Ej: Ópera Espacial, una galaxia muy, muy lejana",
-      task: "Ej: Planificar las comidas de la semana",
-      role: "Ej: Un Caballero Jedi descifrando antiguos holocrones",
-      rule: "Ej: Beber un vaso de agua",
-    },
-    {
-      theme: "Ej: Mundo Cyberpunk, la lluviosa Night City",
-      task: "Ej: Responder emails pendientes",
-      role: "Ej: Un samurái callejero en un golpe corporativo",
-      rule: "Ej: Estirar durante 2 minutos",
-    },
-    {
-      theme: "Ej: Post-apocalíptico, el Yermo Capital",
-      task: "Ej: Limpiar la cocina",
-      role: "Ej: Un Trotamundos Solitario buscando suministros",
-      rule: "Ej: Escuchar una canción",
-    },
-    {
-      theme: "Ej: Mundo Mágico, el Colegio Hogwarts",
-      task: "Ej: Estudiar para un examen",
-      role: "Ej: Un Auror investigando magia oscura",
-      rule: "Ej: Tomar un snack saludable",
-    },
+      rule: "Ej: Poner el móvil en modo avión",
+    }
   ],
 };
 
@@ -75,10 +27,10 @@ const translations = {
     inputSection: {
       themeLabel: "Universe & Theme",
       inspireMe: "Inspire Me",
-      tasksLabel: "Core Missions (Tasks)",
+      tasksLabel: "Core Missions (Real World Tasks)",
       addTask: "Add Mission",
       roleLabel: "Your Role (Optional)",
-      rulesLabel: "Mission Rules (Optional)",
+      rulesLabel: "Mission Rules (Habits/Breaks)",
       addRule: "Add Rule",
       generateButton: "Generate Saga",
       generateButtonLoading: [
@@ -167,10 +119,10 @@ const translations = {
     inputSection: {
       themeLabel: "Universo y Temática",
       inspireMe: "Inspírame",
-      tasksLabel: "Misiones Clave",
+      tasksLabel: "Misiones Clave (Tareas Reales)",
       addTask: "Añadir Misión",
       roleLabel: "Tu Protagonista (Opcional)",
-      rulesLabel: "Reglas de Misión (Opcional)",
+      rulesLabel: "Reglas de Misión (Hábitos/Pausas)",
       addRule: "Añadir Regla",
       generateButton: "Generar Saga",
       generateButtonLoading: [

@@ -230,7 +230,6 @@ const App: React.FC = () => {
             onClear={handleClearAll}
             language={language}
             placeholders={placeholders}
-            placeholderSagaList={placeholderSagas[language]}
           />
           <div>
             <MissionCard

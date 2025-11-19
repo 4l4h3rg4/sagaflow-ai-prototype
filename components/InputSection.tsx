@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import type { SagaInput } from '../types';
 import PlusIcon from './icons/PlusIcon';
 import TrashIcon from './icons/TrashIcon';
@@ -7,13 +7,7 @@ import SparklesIcon from './icons/SparklesIcon';
 import GripVerticalIcon from './icons/GripVerticalIcon';
 import DiceIcon from './icons/DiceIcon';
 import { t } from '../lib/i18n';
-
-type PlaceholderSaga = {
-  theme: string;
-  task: string;
-  role: string;
-  rule: string;
-};
+import { inspirationData } from '../lib/inspirationData';
 
 interface InputSectionProps {
   sagaInput: SagaInput;
@@ -22,25 +16,15 @@ interface InputSectionProps {
   isLoading: boolean;
   onClear: () => void;
   language: 'en' | 'es';
-  placeholders: PlaceholderSaga;
-  placeholderSagaList: PlaceholderSaga[];
+  placeholders: {
+    theme: string;
+    task: string;
+    role: string;
+    rule: string;
+  };
 }
 
-const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, onGenerate, isLoading, onClear, language, placeholders, placeholderSagaList }) => {
-  const [showExamples, setShowExamples] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowExamples(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, onGenerate, isLoading, onClear, language, placeholders }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -66,16 +50,62 @@ const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, on
     }
   };
 
-  const handleSelectExample = (saga: PlaceholderSaga) => {
-    const cleanTheme = saga.theme.replace(/^(e\.g\.|Ej:)\s*/, '');
-    const cleanRole = saga.role.replace(/^(e\.g\.|Ej:)\s*/, '');
+  const getRandomItem = (array: string[], exclude: string[]): string => {
+    const available = array.filter(item => !exclude.includes(item));
+    if (available.length === 0) return array[Math.floor(Math.random() * array.length)];
+    return available[Math.floor(Math.random() * available.length)];
+  };
 
-    setSagaInput(prev => ({
-      ...prev,
-      theme: cleanTheme,
-      prompt: cleanRole,
-    }));
-    setShowExamples(false);
+  const handleInspireMe = () => {
+    const data = inspirationData[language];
+    const updates: Partial<SagaInput> = {};
+
+    // 1. Universe & Role (Coherence check)
+    // Only fill if theme is empty to allow mixing custom themes with random tasks
+    if (!sagaInput.theme.trim()) {
+      const randomThemeObj = data.themes[Math.floor(Math.random() * data.themes.length)];
+      updates.theme = randomThemeObj.universe;
+      
+      // Also set the role if it's empty or if we just set a new theme
+      if (!sagaInput.prompt.trim()) {
+        updates.prompt = randomThemeObj.roles[Math.floor(Math.random() * randomThemeObj.roles.length)];
+      }
+    } else if (!sagaInput.prompt.trim()) {
+        // If theme exists but role is empty, we can't guarantee coherence from static data easily.
+        // We'll leave it blank or user can clear theme to get a pair.
+        // Alternatively, we could pick a generic "Hero" role, but let's respect the user's custom theme.
+    }
+
+    // 2. Tasks (Fill empty slots)
+    const currentTasks = [...sagaInput.tasks];
+    // Keep track of tasks we've already used in this session to avoid duplicates
+    const usedTasks = [...currentTasks.filter(t => t.trim())]; 
+
+    const newTasks = currentTasks.map(task => {
+      if (!task.trim()) {
+        const randomTask = getRandomItem(data.tasks, usedTasks);
+        usedTasks.push(randomTask);
+        return randomTask;
+      }
+      return task;
+    });
+    updates.tasks = newTasks;
+
+    // 3. Constraints (Fill empty slots)
+    const currentConstraints = [...sagaInput.constraints];
+    const usedConstraints = [...currentConstraints.filter(c => c.trim())];
+
+    const newConstraints = currentConstraints.map(constraint => {
+      if (!constraint.trim()) {
+        const randomConstraint = getRandomItem(data.constraints, usedConstraints);
+        usedConstraints.push(randomConstraint);
+        return randomConstraint;
+      }
+      return constraint;
+    });
+    updates.constraints = newConstraints;
+
+    setSagaInput(prev => ({ ...prev, ...updates }));
   };
 
   const dragTask = React.useRef<number | null>(null);
@@ -117,34 +147,14 @@ const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, on
       <div id="tour-theme">
         <div className="flex justify-between items-center mb-2">
             <label htmlFor="theme" className="block text-sm font-medium text-[var(--color-accent)] font-cinzel tracking-wide">{t('inputSection.themeLabel', language)}</label>
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative">
                 <button
-                    onClick={() => setShowExamples(prev => !prev)}
-                    className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition rounded-full py-1 px-2 hover:bg-[var(--color-input-bg)]"
-                    aria-haspopup="true"
-                    aria-expanded={showExamples}
+                    onClick={handleInspireMe}
+                    className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition rounded-full py-1 px-2 hover:bg-[var(--color-input-bg)] active:scale-95"
                 >
                     <DiceIcon />
                     {t('inputSection.inspireMe', language)}
                 </button>
-                {showExamples && (
-                    <div className="absolute right-0 mt-2 w-72 max-h-60 overflow-y-auto bg-[var(--color-bg)] border border-[var(--color-border)] rounded-md shadow-lg z-10 animate-fade-in-fast">
-                         <ul className="py-1" role="menu">
-                            {placeholderSagaList.map((saga, index) => (
-                                <li key={index} role="presentation">
-                                    <button
-                                        onClick={() => handleSelectExample(saga)}
-                                        className="w-full text-left px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-accent-strong)]/20 transition-colors"
-                                        role="menuitem"
-                                    >
-                                        <span className="font-semibold block">{saga.theme.replace(/^(e\.g\.|Ej:)\s*/, '')}</span>
-                                        <span className="text-xs text-[var(--color-text-muted)]">{saga.role.replace(/^(e\.g\.|Ej:)\s*/, '')}</span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
             </div>
         </div>
         <input
@@ -156,13 +166,6 @@ const InputSection: React.FC<InputSectionProps> = ({ sagaInput, setSagaInput, on
           placeholder={placeholders.theme}
           className="w-full bg-[var(--color-input-bg)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-md px-3 py-2 focus:ring-2 focus:ring-[var(--color-accent-strong)] focus:border-[var(--color-accent-strong)] transition"
         />
-        <style>{`
-          @keyframes fade-in-fast {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          .animate-fade-in-fast { animation: fade-in-fast 0.15s ease-out forwards; }
-        `}</style>
       </div>
 
       <div id="tour-tasks">
