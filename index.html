@@ -1,100 +1,166 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>SagaFlow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;60_0&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Outfit', sans-serif;
         background-color: var(--color-bg);
-        transition: background-color 0.3s ease, color 0.3s ease;
+        color: var(--color-text-primary);
+        transition: background-color 0.5s ease, color 0.5s ease;
+        /* Prevent rubber-banding on iOS */
+        overscroll-behavior-y: none;
+        /* Remove grey highlight on tap for mobile */
+        -webkit-tap-highlight-color: transparent;
+        /* Smoother scrolling on iOS */
+        -webkit-overflow-scrolling: touch;
       }
+      
+      /* Selection colors for better aesthetics */
+      ::selection {
+        background-color: var(--color-accent);
+        color: #ffffff;
+      }
+
+      /* Prevent iOS text size adjustment and auto-zoom on inputs */
+      @media screen and (max-width: 768px) {
+        input, textarea, select, button {
+          font-size: 16px !important; 
+        }
+      }
+
+      /* REPLACED SPACE GROTESK WITH OUTFIT (MODERN DISPLAY STYLE) */
+      .font-display {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em; /* Tight tracking for modern look */
+      }
+
       .font-cinzel {
         font-family: 'Cinzel', serif;
       }
 
-      /* Theme Variables */
+      /* --- SAGA FLOW: ETHEREAL SANCTUARY PALETTE (LIQUID GLASS ADJUSTMENTS) --- */
+      /* NOTE: Borders are now extremely subtle (opacity 0.05 - 0.1) to reduce visual noise */
+      
       body.theme-dark {
-        /* "Midnight" Palette */
-        --color-bg: #111827; /* gray-900 */
-        --color-text-primary: #f9fafb; /* gray-50 */
-        --color-text-secondary: #e5e7eb; /* gray-200 */
-        --color-text-muted: #9ca3af; /* gray-400 */
-        --color-card-bg: rgba(31, 41, 55, 0.6); /* gray-800/60 */
-        --color-input-bg: rgba(17, 24, 39, 0.8); /* gray-900/80 */
-        --color-border: #374151; /* gray-700 */
-        --color-accent: #a78bfa; /* violet-400 */
-        --color-accent-hover: #8b5cf6; /* violet-500 */
-        --color-accent-strong: #7c3aed; /* violet-600 */
-        --color-header-gradient-from: #8b5cf6; /* violet-500 */
-        --color-header-gradient-via: #ec4899; /* pink-500 */
-        --color-header-gradient-to: #f59e0b; /* amber-500 */
-        --color-button-gradient-from: #7c3aed; /* violet-600 */
-        --color-button-gradient-to: #c026d3; /* fuchsia-600 */
-        --color-button-gradient-from-hover: #6d28d9; /* violet-700 */
-        --color-button-gradient-to-hover: #a21caf; /* fuchsia-700 */
-        --color-destructive: #f87171; /* red-400 */
-        --color-destructive-hover: #ef4444; /* red-500 */
-        --color-destructive-bg: rgba(76, 29, 29, 0.5); /* red-900/50 */
+        /* "Starfall" - Deep, safe indigos and bioluminescent violets */
+        --color-bg: #0f0a1e; 
+        --color-text-primary: #e9d5ff; 
+        --color-text-secondary: #c4b5fd; 
+        --color-text-muted: #8b5cf6; 
+        
+        /* LIQUID GLASS: High transparency for backdrop blur to work */
+        --color-card-bg: rgba(20, 15, 40, 0.4); 
+        --color-input-bg: rgba(255, 255, 255, 0.03); 
+        
+        --color-border: rgba(255, 255, 255, 0.08); /* Ultra subtle border */
+        
+        --color-accent: #a78bfa; 
+        --color-accent-hover: #c084fc; 
+        --color-accent-strong: #7c3aed; 
+        
+        --color-header-gradient-from: #c084fc; 
+        --color-header-gradient-via: #f472b6; 
+        --color-header-gradient-to: #fbbf24; 
+        
+        --color-button-gradient-from: #6d28d9; 
+        --color-button-gradient-to: #4c1d95; 
+        --color-button-gradient-from-hover: #7c3aed; 
+        --color-button-gradient-to-hover: #5b21b6;
+        
+        --color-destructive: #f87171;
+        --color-destructive-hover: #ef4444;
+        --color-destructive-bg: rgba(127, 29, 29, 0.2);
+
+        /* Ambient Orbs */
+        --color-ambient-1: #5b21b6;
+        --color-ambient-2: #be185d;
+        --color-ambient-3: #1e40af;
       }
 
       body.theme-light {
-        /* "Lilac Dream" Palette - Soft, comfy, and legible */
-        --color-bg: #f8f7fc; /* very pale lavender */
-        --color-text-primary: #3c335b; /* deep, muted indigo */
-        --color-text-secondary: #5e577d; /* muted purple-grey */
-        --color-text-muted: #918ca9; /* light purple-grey */
-        --color-card-bg: #ffffff; /* white */
-        --color-input-bg: #ffffff; /* white */
-        --color-border: #e0ddea; /* soft lavender-grey */
-        --color-accent: #8e7cc3; /* main lilac */
-        --color-accent-hover: #7b68b0; /* darker lilac */
-        --color-accent-strong: #69569e; /* darkest lilac for focus */
-        --color-header-gradient-from: #a084e8; /* soft lilac */
-        --color-header-gradient-via: #c797eb; /* soft orchid */
-        --color-header-gradient-to: #eab5f2; /* soft mauve */
-        --color-button-gradient-from: #8e7cc3; /* main lilac */
-        --color-button-gradient-to: #7b68b0; /* darker lilac */
-        --color-button-gradient-from-hover: #7b68b0; /* darker lilac */
-        --color-button-gradient-to-hover: #69569e; /* darkest lilac */
-        --color-destructive: #ef798a; /* soft rose */
-        --color-destructive-hover: #e86376; /* darker soft rose */
-        --color-destructive-bg: #fae8eb; /* very light rose */
+        /* "Daydream" - Soft lilacs, creamy whites, airy atmosphere */
+        --color-bg: #f8f7ff; 
+        --color-text-primary: #2e1065; 
+        --color-text-secondary: #5b21b6; 
+        --color-text-muted: #8b5cf6; 
+        
+        /* LIQUID GLASS: Milky white transparency */
+        --color-card-bg: rgba(255, 255, 255, 0.5); 
+        --color-input-bg: rgba(255, 255, 255, 0.6);
+        
+        --color-border: rgba(46, 16, 101, 0.06); /* Very subtle dark border for light mode */
+        
+        --color-accent: #9333ea; 
+        --color-accent-hover: #7e22ce; 
+        --color-accent-strong: #6b21a8; 
+        
+        --color-header-gradient-from: #9333ea;
+        --color-header-gradient-via: #d946ef;
+        --color-header-gradient-to: #f59e0b;
+        
+        --color-button-gradient-from: #c084fc; 
+        --color-button-gradient-to: #a855f7; 
+        --color-button-gradient-from-hover: #d8b4fe;
+        --color-button-gradient-to-hover: #c084fc;
+        
+        --color-destructive: #fb7185; 
+        --color-destructive-hover: #f43f5e;
+        --color-destructive-bg: #fff1f2;
+
+        --color-ambient-1: #e9d5ff;
+        --color-ambient-2: #fbcfe8;
+        --color-ambient-3: #bfdbfe;
       }
       
       body.theme-mystic {
-        /* "Starlight" Palette */
-        --color-bg-image: linear-gradient(to bottom right, #0c0a09, #1e1b4b, #0c0a09);
-        --color-bg: #0c0a09;
-        --color-text-primary: #e0e7ff; /* indigo-100 */
-        --color-text-secondary: #c7d2fe; /* indigo-200 */
-        --color-text-muted: #a5b4fc; /* indigo-300 */
-        --color-card-bg: rgba(2, 6, 23, 0.4); /* slate-950/40 */
-        --color-input-bg: rgba(2, 6, 23, 0.6); /* slate-950/60 */
-        --color-border: rgba(99, 102, 241, 0.3); /* indigo-400/30 */
-        --color-accent: #a5b4fc; /* indigo-300 */
-        --color-accent-hover: #818cf8; /* indigo-400 */
-        --color-accent-strong: #6366f1; /* indigo-500 */
-        --color-header-gradient-from: #6366f1; /* indigo-500 */
-        --color-header-gradient-via: #a855f7; /* purple-500 */
-        --color-header-gradient-to: #38bdf8; /* sky-400 */
-        --color-button-gradient-from: #4f46e5; /* indigo-600 */
-        --color-button-gradient-to: #0e7490; /* cyan-700 */
-        --color-button-gradient-from-hover: #4338ca; /* indigo-700 */
-        --color-button-gradient-to-hover: #155e75; /* cyan-800 */
-        --color-destructive: #fca5a5; /* red-300 */
-        --color-destructive-hover: #f87171; /* red-400 */
-        --color-destructive-bg: rgba(153, 27, 27, 0.3); /* red-900/30 */
+        /* "Astral Plane" - High contrast neon fantasy */
+        --color-bg-image: radial-gradient(circle at center, #1e1b4b, #020617);
+        --color-bg: #020617;
+        --color-text-primary: #ffffff;
+        --color-text-secondary: #a5b4fc;
+        --color-text-muted: #6366f1;
+        
+        /* LIQUID GLASS: Dark crystal */
+        --color-card-bg: rgba(15, 23, 42, 0.4);
+        --color-input-bg: rgba(255, 255, 255, 0.05);
+        
+        --color-border: rgba(255, 255, 255, 0.1); 
+        
+        --color-accent: #38bdf8; 
+        --color-accent-hover: #7dd3fc;
+        --color-accent-strong: #0ea5e9;
+        
+        --color-header-gradient-from: #22d3ee;
+        --color-header-gradient-via: #818cf8;
+        --color-header-gradient-to: #e879f9;
+        
+        --color-button-gradient-from: #4f46e5;
+        --color-button-gradient-to: #06b6d4;
+        --color-button-gradient-from-hover: #4338ca;
+        --color-button-gradient-to-hover: #0891b2;
+        
+        --color-destructive: #fca5a5;
+        --color-destructive-hover: #f87171;
+        --color-destructive-bg: rgba(153, 27, 27, 0.3);
+
+        --color-ambient-1: #4338ca;
+        --color-ambient-2: #0891b2;
+        --color-ambient-3: #701a75;
       }
       
       body.theme-mystic {
         background-image: var(--color-bg-image);
+        background-attachment: fixed;
       }
 
       .gradient-button {
@@ -102,6 +168,30 @@
       }
       .gradient-button:hover:not(:disabled) {
           background-image: linear-gradient(to right, var(--color-button-gradient-from-hover), var(--color-button-gradient-to-hover));
+      }
+      
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-accent);
+      }
+      
+      /* Mobile Helpers */
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+      }
+      
+      .h-safe {
+        min-height: -webkit-fill-available;
       }
     </style>
   <script type="importmap">

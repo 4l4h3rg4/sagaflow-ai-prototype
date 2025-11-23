@@ -29,12 +29,12 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ feedback, isLoading, onCl
               <div className="flex justify-center mb-4">
                 <LoadingSpinner />
               </div>
-              <h2 className="font-cinzel text-2xl font-bold text-[var(--color-text-secondary)]">{t('feedbackModal.loadingTitle', language)}</h2>
+              <h2 className="font-display text-2xl font-bold text-[var(--color-text-secondary)]">{t('feedbackModal.loadingTitle', language)}</h2>
               <p className="text-[var(--color-text-muted)] mt-2">{t('feedbackModal.loadingBody', language)}</p>
             </>
           ) : feedback ? (
             <>
-              <h2 className="font-cinzel text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-400 to-red-400 mb-4">
+              <h2 className="font-display text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-400 to-red-400 mb-4">
                 {feedback.title}
               </h2>
               <p className="text-[var(--color-text-secondary)] mt-4 leading-relaxed">{feedback.message}</p>
@@ -63,3 +63,4 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ feedback, isLoading, onCl
 };
 
 export default FeedbackModal;
+    

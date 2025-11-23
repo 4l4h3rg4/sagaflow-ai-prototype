@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ThemeSwitcher from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
 import { t } from '../lib/i18n';
+import Tooltip from './Tooltip';
 
 type Theme = 'dark' | 'light' | 'mystic';
 
@@ -45,38 +46,39 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ theme, onThemeChange, langu
 
   return (
     <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setIsOpen(prev => !prev)}
-        className="p-2 rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-input-bg)] hover:text-[var(--color-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-strong)] focus:ring-offset-2 focus:ring-offset-[var(--color-bg)]"
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        aria-label="Open settings menu"
-        title="Settings"
-      >
-        <SettingsIcon />
-      </button>
+      <Tooltip text={t('tooltips.settings', language)} position="left">
+        <button
+          onClick={() => setIsOpen(prev => !prev)}
+          className="p-3 sm:p-2 rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-input-bg)] hover:text-[var(--color-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-strong)] focus:ring-offset-2 focus:ring-offset-[var(--color-bg)] backdrop-blur-sm bg-[var(--color-card-bg)] border border-[var(--color-border)] sm:border-none sm:bg-transparent shadow-sm sm:shadow-none"
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+          aria-label="Open settings menu"
+        >
+          <SettingsIcon />
+        </button>
+      </Tooltip>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-56 bg-[var(--color-card-bg)] border border-[var(--color-border)] rounded-lg shadow-2xl z-20 p-4 animate-fade-in-fast backdrop-blur-md"
+          className="absolute right-0 mt-2 w-[85vw] sm:w-56 bg-[var(--color-card-bg)] ring-1 ring-white/10 rounded-lg shadow-2xl z-20 p-4 animate-fade-in-fast backdrop-blur-xl origin-top-right"
           role="menu"
         >
           <div className="space-y-5">
             <div>
               <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-2">{t('settings.theme', language)}</label>
-              <ThemeSwitcher theme={theme} onThemeChange={onThemeChange} />
+              <ThemeSwitcher theme={theme} onThemeChange={onThemeChange} language={language} />
             </div>
             <div>
               <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-2">{t('settings.language', language)}</label>
               <LanguageSwitcher language={language} onLanguageChange={onLanguageChange} />
             </div>
-            <div className="pt-2 border-t border-[var(--color-border)]">
+            <div className="pt-2 border-t border-[var(--color-border)]/50 space-y-1">
                <button 
                 onClick={() => {
                     onRestartTutorial();
                     setIsOpen(false);
                 }}
-                className="flex items-center gap-2 w-full text-left text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors p-1 rounded hover:bg-[var(--color-input-bg)]"
+                className="flex items-center gap-2 w-full text-left text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors p-2 rounded hover:bg-[var(--color-input-bg)]"
                >
                    <RefreshIcon />
                    {t('settings.tutorial', language)}

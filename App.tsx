@@ -1,7 +1,5 @@
-
-import React, { useState, useCallback, useEffect } from 'react';
-import type { SagaInput, Saga, Feedback } from './types';
-import { generateSaga, generateFeedback, generateScenarioImage } from './services/geminiService';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSagaGamification } from './hooks/useSagaGamification';
 import InputSection from './components/InputSection';
 import MissionCard from './components/MissionCard';
 import FeedbackModal from './components/FeedbackModal';
@@ -9,199 +7,94 @@ import ToastNotification from './components/ToastNotification';
 import FeatsLog from './components/FeatsLog';
 import TutorialOverlay from './components/TutorialOverlay';
 import SettingsMenu from './components/SettingsMenu';
+import LoadingSpinner from './components/icons/LoadingSpinner';
 import { t, placeholderSagas } from './lib/i18n';
 
 type Theme = 'dark' | 'light' | 'mystic';
 
 const App: React.FC = () => {
+  // App-level State (Theme, Language, Tutorial)
   const [language, setLanguage] = useState<'en' | 'es'>('es');
   const [theme, setTheme] = useState<Theme>('dark');
-  const [sagaInput, setSagaInput] = useState<SagaInput>({
-    theme: '',
-    tasks: [''],
-    prompt: '',
-    constraints: [''],
-  });
-  const [mission, setMission] = useState<Saga | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [tutorialState, setTutorialState] = useState<{ isActive: boolean, type: 'onboarding' | 'mission' }>({ isActive: false, type: 'onboarding' });
+  const [placeholders, setPlaceholders] = useState(placeholderSagas['es'][0]);
 
-  // New state for feedback system
-  const [toast, setToast] = useState<{ id: number, message: string } | null>(null);
-  const [completedFeats, setCompletedFeats] = useState<Feedback[]>([]);
-  const [finalFeedback, setFinalFeedback] = useState<{ content: Feedback | null, isLoading: boolean }>({ content: null, isLoading: false });
-  const [placeholders, setPlaceholders] = useState({
-    theme: '',
-    task: '',
-    role: '',
-    rule: '',
-  });
+  // Game Engine Hook
+  const {
+    sagaInput, setSagaInput, mission, isLoading, isImageLoading, loadingMessage, error,
+    backgroundImage, backgroundOpacity, toast, setToast, completedFeats, finalFeedback, setFinalFeedback,
+    actions
+  } = useSagaGamification(language);
 
-  // State for Image Generation
-  const [isImageLoading, setIsImageLoading] = useState(false);
+  const isMountedRef = useRef(true);
 
-  // Tutorial State
-  const [isTutorialActive, setIsTutorialActive] = useState(false);
-
+  // --- Effects for Theme/Tutorial/Language ---
   useEffect(() => {
-    // Check if tutorial has been completed
-    const tutorialDone = localStorage.getItem('sagaFlowTutorialDone');
-    if (!tutorialDone) {
-        // Small delay to ensure UI is ready
-        const timer = setTimeout(() => setIsTutorialActive(true), 1000);
-        return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleCloseTutorial = () => {
-      setIsTutorialActive(false);
-      localStorage.setItem('sagaFlowTutorialDone', 'true');
-  };
-
-  const handleRestartTutorial = () => {
-      setIsTutorialActive(true);
-  };
-
-  useEffect(() => {
-    // remove previous theme classes
     document.body.classList.remove('theme-dark', 'theme-light', 'theme-mystic');
-    // add current theme class
-    document.body.className = `theme-${theme}`;
+    document.body.classList.add(`theme-${theme}`);
   }, [theme]);
 
-  // Pick a random placeholder on mount and language change
   useEffect(() => {
     const langPlaceholders = placeholderSagas[language];
-    const randomIndex = Math.floor(Math.random() * langPlaceholders.length);
-    setPlaceholders(langPlaceholders[randomIndex]);
+    setPlaceholders(langPlaceholders[Math.floor(Math.random() * langPlaceholders.length)]);
   }, [language]);
 
   useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-  
-  const handleGenerateSaga = useCallback(async () => {
-    const nonEmptyTasks = sagaInput.tasks.filter(t => t.trim());
-    if (!sagaInput.theme || nonEmptyTasks.length === 0) {
-      setError(t('app.errorRequired', language));
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
-    setMission(null);
-    setCompletedFeats([]);
-    setFinalFeedback({ content: null, isLoading: false });
-    setIsImageLoading(false);
-
-    try {
-      const result = await generateSaga({ ...sagaInput, tasks: nonEmptyTasks }, language);
-      setMission(result);
-      
-      // Trigger Image Generation asynchronously once text is ready
-      setIsImageLoading(true);
-      generateScenarioImage(sagaInput.theme, result.scenario)
-        .then((imageUrl) => {
-           if (imageUrl) {
-             setMission(prev => prev ? { ...prev, imageUrl } : null);
-           }
-        })
-        .catch(err => console.error("Image gen failed", err))
-        .finally(() => setIsImageLoading(false));
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('app.errorUnknown', language));
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [sagaInput, language]);
-
-  const handleClearAll = useCallback(() => {
-    setSagaInput({
-      theme: '',
-      tasks: [''],
-      prompt: '',
-      constraints: [''],
-    });
-    setMission(null);
-    setError(null);
-    setCompletedFeats([]);
-    setFinalFeedback({ content: null, isLoading: false });
+    const tutorialDone = localStorage.getItem('sagaFlowTutorialDone');
+    if (!tutorialDone) setTimeout(() => setTutorialState({ isActive: true, type: 'onboarding' }), 1000);
   }, []);
 
-  const handleToggleObjective = useCallback((objectiveIndex: number) => {
-    setMission(prevMission => {
-      if (!prevMission) return null;
-
-      const newObjectives = [...prevMission.objectives];
-      const targetObjective = newObjectives[objectiveIndex];
-
-      newObjectives[objectiveIndex] = { ...targetObjective, completed: !targetObjective.completed };
-      const newMissionState = { ...prevMission, objectives: newObjectives };
-
-      // If a task was just marked as COMPLETE
-      if (newObjectives[objectiveIndex].completed) {
-        // 1. Show instant visual feedback (toast)
-        setToast({ id: Date.now(), message: t('toast.successTitle', language) });
-
-        // 2. Generate feat description in the background
-        (async () => {
-          try {
-            const featData = await generateFeedback({
-              theme: sagaInput.theme || 'a grand adventure',
-              role: newMissionState.roleAndObjective,
-              completedTask: newObjectives[objectiveIndex].missionTask,
-              isFinal: false,
-            }, language);
-            setCompletedFeats(prevFeats => [...prevFeats, featData]);
-          } catch (err) {
-            console.error("Could not generate feat:", err);
-          }
-        })();
-        
-        // 3. Check if all objectives are now complete
-        const allComplete = newObjectives.every(obj => obj.completed);
-        if (allComplete) {
-          // 4. Trigger the final, grand feedback modal
-          (async () => {
-            setFinalFeedback({ content: null, isLoading: true });
-            try {
-              const finalFeedbackData = await generateFeedback({
-                theme: sagaInput.theme || 'a grand adventure',
-                role: newMissionState.roleAndObjective,
-                completedTask: newObjectives[objectiveIndex].missionTask, // The last completed task
-                isFinal: true,
-              }, language);
-              setFinalFeedback({ content: finalFeedbackData, isLoading: false });
-            } catch (err) {
-              console.error("Could not generate final feedback:", err);
-              // Show a fallback if API fails
-              setFinalFeedback({
-                content: { id: 'fallback', title: 'Victory!', message: 'You have completed all your objectives. A legendary achievement!' },
-                isLoading: false
-              });
-            }
-          })();
-        }
+  useEffect(() => {
+      if (mission && !isLoading) {
+          const missionTutorialDone = localStorage.getItem('sagaFlowMissionTutorialDone');
+          if (!missionTutorialDone) setTimeout(() => setTutorialState({ isActive: true, type: 'mission' }), 800);
       }
+  }, [mission, isLoading]);
 
-      return newMissionState;
-    });
-  }, [sagaInput.theme, language]);
-  
+  const handleCloseTutorial = () => {
+      localStorage.setItem(tutorialState.type === 'onboarding' ? 'sagaFlowTutorialDone' : 'sagaFlowMissionTutorialDone', 'true');
+      setTutorialState(prev => ({ ...prev, isActive: false }));
+  };
+
+  const handleRestartTutorial = () => {
+      localStorage.removeItem('sagaFlowTutorialDone');
+      localStorage.removeItem('sagaFlowMissionTutorialDone');
+      setTutorialState({ isActive: true, type: 'onboarding' });
+  };
+
+  const isMissionActive = !!mission || isLoading;
+
+  const getOverlayClass = () => {
+    if (!backgroundImage || backgroundOpacity === 0) return 'bg-transparent';
+    return theme === 'light' ? 'bg-white/90 backdrop-blur-[8px]' : 'bg-black/80 backdrop-blur-[4px]'; 
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)] p-4 sm:p-6 lg:p-8 relative">
+    <div className="min-h-screen h-safe relative overflow-x-hidden transition-colors duration-700">
+      
+      {/* Dynamic Background Layer */}
+      <div className="fixed inset-0 z-0 overflow-hidden bg-[var(--color-bg)]">
+        <div className={`absolute inset-0 transition-opacity duration-1000 ${backgroundOpacity > 0 ? 'opacity-0' : 'opacity-100'}`}>
+            <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-[var(--color-ambient-1)] rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-blob"></div>
+            <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-[var(--color-ambient-2)] rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-blob animation-delay-2000"></div>
+            <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] bg-[var(--color-ambient-3)] rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-blob animation-delay-4000"></div>
+        </div>
+        <div 
+            className="absolute inset-0 transition-opacity duration-1000 ease-in-out bg-cover bg-center bg-no-repeat animate-ken-burns"
+            style={{ backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', opacity: backgroundOpacity }}
+        />
+      </div>
+
+      <div className={`fixed inset-0 z-0 transition-all duration-1000 pointer-events-none ${getOverlayClass()}`} />
+
       <TutorialOverlay 
-          isActive={isTutorialActive} 
+          isActive={tutorialState.isActive} 
           onClose={handleCloseTutorial} 
-          language={language} 
+          language={language}
+          type={tutorialState.type}
       />
       
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+      <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-50">
         <SettingsMenu 
           theme={theme}
           onThemeChange={setTheme}
@@ -210,50 +103,86 @@ const App: React.FC = () => {
           onRestartTutorial={handleRestartTutorial}
         />
       </div>
-      <main className="max-w-4xl mx-auto">
-        <header className="text-center mb-10">
-          <h1
-            className="font-cinzel text-4xl sm:text-5xl md:text-6xl font-bold tracking-wider text-transparent bg-clip-text"
-            style={{ backgroundImage: `linear-gradient(to right, var(--color-header-gradient-from), var(--color-header-gradient-via), var(--color-header-gradient-to))`}}
-          >
+
+      <main className="relative z-10 w-full min-h-screen flex flex-col items-center justify-start sm:justify-center p-3 pt-6 sm:p-6 lg:p-8">
+        
+        <header className={`text-center mb-6 sm:mb-8 transition-all duration-500 ${isMissionActive ? 'scale-90 opacity-80 hidden sm:block' : 'scale-100'}`}>
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text drop-shadow-sm leading-tight pb-1"
+            style={{ backgroundImage: `linear-gradient(to right, var(--color-header-gradient-from), var(--color-header-gradient-via), var(--color-header-gradient-to))`}}>
             {t('header.title', language)}
           </h1>
-          <p className="mt-2 text-[var(--color-text-secondary)] text-base sm:text-lg">{t('header.subtitle', language)}</p>
+          {!isMissionActive && (
+             <p className="mt-2 text-[var(--color-text-secondary)] text-sm sm:text-lg animate-fade-in font-medium px-4">{t('header.subtitle', language)}</p>
+          )}
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <InputSection
-            sagaInput={sagaInput}
-            setSagaInput={setSagaInput}
-            onGenerate={handleGenerateSaga}
-            isLoading={isLoading}
-            onClear={handleClearAll}
-            language={language}
-            placeholders={placeholders}
-          />
-          <div>
-            <MissionCard
-              mission={mission}
-              isLoading={isLoading}
-              isImageLoading={isImageLoading}
-              error={error}
-              onToggleObjective={handleToggleObjective}
-              language={language}
-            />
-            <FeatsLog feats={completedFeats} language={language} />
-          </div>
+        <div className="w-full max-w-4xl mx-auto relative">
+            
+            {/* Loading Overlay */}
+            {isLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-50 min-h-[400px] pointer-events-none">
+                    <div className="animate-pulse"><LoadingSpinner /></div>
+                    <h2 key={loadingMessage} className="mt-6 font-display text-xl sm:text-2xl text-[var(--color-accent)] font-bold tracking-wider animate-fade-in-fast text-center px-4 drop-shadow-md">
+                        {loadingMessage}
+                    </h2>
+                    <p className="text-[var(--color-text-muted)] mt-2 text-xs sm:text-sm font-medium">Motor SagaCore by SagaFlow</p>
+                </div>
+            )}
+
+            {!isMissionActive ? (
+                <div className="animate-slide-up pb-safe">
+                    <InputSection
+                        sagaInput={sagaInput}
+                        setSagaInput={setSagaInput}
+                        onGenerate={actions.generateMission}
+                        isLoading={isLoading}
+                        onClear={actions.clearAll}
+                        language={language}
+                        placeholders={placeholders}
+                    />
+                </div>
+            ) : (
+                !isLoading && (
+                    <div className="animate-fade-in w-full pb-24 sm:pb-12">
+                        <div className="flex justify-between items-center mb-4 px-2">
+                            <button 
+                                id="tour-mission-back"
+                                onClick={actions.returnToEdit}
+                                className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-2 transition-colors bg-[var(--color-card-bg)] px-3 py-1.5 rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] backdrop-blur-md"
+                            >
+                                {t('inputSection.backButton', language)}
+                            </button>
+                        </div>
+                        
+                        <MissionCard
+                            mission={mission}
+                            isLoading={isLoading}
+                            isImageLoading={isImageLoading} 
+                            error={error}
+                            onToggleObjective={actions.toggleObjective}
+                            language={language}
+                        />
+                        <FeatsLog feats={completedFeats} language={language} />
+                        
+                        <div className="mt-8 text-center mb-12">
+                             <button onClick={actions.clearAll} className="text-[var(--color-destructive)] hover:text-[var(--color-destructive-hover)] text-sm underline decoration-dotted underline-offset-4 transition-colors p-4">
+                                 {t('inputSection.clearButton', language)}
+                             </button>
+                        </div>
+                    </div>
+                )
+            )}
         </div>
       </main>
-      <footer className="text-center mt-12 text-[var(--color-text-muted)] text-sm">
-        <p>{t('app.footer', language)}</p>
-      </footer>
+
+      {!isMissionActive && (
+        <footer className="relative z-10 text-center py-6 text-[var(--color-text-muted)] text-xs sm:text-sm font-medium hidden sm:block">
+          <p>{t('app.footer', language)}</p>
+        </footer>
+      )}
 
       {toast && (
-        <ToastNotification 
-          key={toast.id}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
+        <ToastNotification key={toast.id} message={toast.message} onClose={() => setToast(null)} />
       )}
 
       {(finalFeedback.isLoading || finalFeedback.content) && (
@@ -264,6 +193,21 @@ const App: React.FC = () => {
           language={language}
         />
       )}
+      
+      <style>{`
+        @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+        @keyframes fade-in-fast { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-fast { animation: fade-in-fast 0.5s ease-out forwards; }
+        @keyframes ken-burns { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+        .animate-ken-burns { animation: ken-burns 20s alternate infinite ease-in-out; }
+        @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
+        .animate-blob { animation: blob 10s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+      `}</style>
     </div>
   );
 };

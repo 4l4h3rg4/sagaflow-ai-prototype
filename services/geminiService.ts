@@ -2,7 +2,14 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { SagaInput, Saga, Feedback } from '../types';
 
-// Helper for ID generation that works in non-secure contexts
+// Singleton instance to avoid overhead
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  console.error("API_KEY environment variable not set.");
+}
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+
+// Helper for ID generation
 function generateId(): string {
   if (typeof self.crypto !== 'undefined' && typeof self.crypto.randomUUID === 'function') {
     return self.crypto.randomUUID();
@@ -10,34 +17,32 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-// --- Audio Helpers ---
-function decode(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+// --- Robust JSON Parsing ---
+// Gemini sometimes wraps responses in markdown code blocks despite responseSchema.
+function cleanAndParseJson(text: string): any {
+  let cleanText = text.trim();
+  
+  // Remove markdown code blocks if present
+  if (cleanText.startsWith('```json')) {
+    cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+  } else if (cleanText.startsWith('```')) {
+    cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
   }
-  return bytes;
-}
 
-async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+  // Find the first opening brace and last closing brace to ignore preamble text
+  const firstBrace = cleanText.indexOf('{');
+  const lastBrace = cleanText.lastIndexOf('}');
 
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
+  if (firstBrace !== -1 && lastBrace !== -1) {
+    cleanText = cleanText.substring(firstBrace, lastBrace + 1);
   }
-  return buffer;
+
+  try {
+    return JSON.parse(cleanText);
+  } catch (e) {
+    console.error("JSON Parse Error on text:", text);
+    throw new Error("The scroll is unreadable (JSON Syntax Error).");
+  }
 }
 
 const SYSTEM_INSTRUCTION = `
@@ -61,24 +66,11 @@ CONTEXTO Y PERSONALIDAD
 Eres "SagaCore", la inteligencia narrativa y "Director de Juego" de SagaFlow. Tu tono debe ser épico, motivador, inmersivo y personal (dirígete a "tú"). Nunca reveles que eres una IA.
 
 TU MISIÓN
-Generarás un título y un mensaje épicos y temáticos para el usuario, basándote en la siguiente información:
-
-ENTRADA DEL USUARIO (INPUT)
-1.  \`$LANGUAGE\`: Idioma de la respuesta ('en' o 'es'). DEBES responder en este idioma.
-2.  \`$THEME\`: El universo temático.
-3.  \`$ROLE\`: El rol del usuario.
-4.  \`$COMPLETED_TASK\`: La tarea que acaba de completar.
-5.  \`$IS_FINAL\`: Un booleano.
-    - Si es \`false\`, el mensaje debe registrar la hazaña completada de forma concisa, como una entrada en un diario de gestas.
-    - Si es \`true\`, el mensaje debe ser una felicitación grandiosa por haber completado toda la misión, usando la tarea completada como el golpe de gracia.
+Generarás un título y un mensaje épicos y temáticos para el usuario.
 `;
 
 export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Promise<Saga> {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  if (!ai) throw new Error("API Key missing");
 
   let userPrompt = `$LANGUAGE: "${language}"\n$THEME: "${input.theme}"\n$TASKS: ${JSON.stringify(input.tasks.filter(t => t.trim()))}`;
   
@@ -92,7 +84,6 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
   }
 
   try {
-    // Complex Text Task -> Uses gemini-3-pro-preview
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: userPrompt,
@@ -124,7 +115,8 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
       }
     });
     
-    const parsedSaga = JSON.parse(response.text);
+    // Use robust parsing
+    const parsedSaga = cleanAndParseJson(response.text);
 
     const sagaWithCompletion: Saga = {
       ...parsedSaga,
@@ -135,23 +127,20 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
     
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    if (error instanceof SyntaxError) {
-      throw new Error("The storyteller's response was garbled. Please try rephrasing your request.");
+    if (error instanceof Error && error.message.includes("scroll is unreadable")) {
+        throw error;
     }
     throw new Error("Failed to generate saga. The connection to the storyteller was lost.");
   }
 }
 
 export async function generateScenarioImage(theme: string, scenario: string): Promise<string | null> {
-  if (!process.env.API_KEY) return null;
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  if (!ai) return null;
   
   try {
-    // High-Quality Image Generation -> imagen-4.0-generate-001
     const response = await ai.models.generateImages({
       model: 'imagen-4.0-generate-001',
-      prompt: `Cinematic, epic digital art concept for a game. Theme: ${theme}. Scene: ${scenario.substring(0, 300)}. High quality, atmospheric lighting, detailed background. No text.`,
+      prompt: `Cinematic, epic digital art concept for a video game background. Theme: ${theme}. Scene description: ${scenario.substring(0, 250)}. Wide angle, atmospheric lighting, highly detailed, matte painting style. No text, no HUD, no UI elements.`,
       config: {
         numberOfImages: 1,
         outputMimeType: 'image/jpeg',
@@ -166,14 +155,13 @@ export async function generateScenarioImage(theme: string, scenario: string): Pr
     return null;
   } catch (error) {
     console.error("Error generating image:", error);
-    return null; // Fail gracefully, text is more important
+    return null; 
   }
 }
 
-export async function generateNarratorAudio(text: string, language: 'en' | 'es'): Promise<AudioBuffer | null> {
-  if (!process.env.API_KEY) return null;
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Optimized: Returns base64 string only. Decoding happens in the component to save AudioContexts.
+export async function generateNarratorAudio(text: string, language: 'en' | 'es'): Promise<string | null> {
+  if (!ai) return null;
   
   try {
     const response = await ai.models.generateContent({
@@ -183,25 +171,14 @@ export async function generateNarratorAudio(text: string, language: 'en' | 'es')
         responseModalities: [Modality.AUDIO],
         speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Fenrir' }, // Deep, epic voice
+              prebuiltVoiceConfig: { voiceName: 'Fenrir' }, 
             },
         },
       },
     });
 
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) return null;
-
-    const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
-    
-    const audioBuffer = await decodeAudioData(
-      decode(base64Audio),
-      outputAudioContext,
-      24000,
-      1,
-    );
-    
-    return audioBuffer;
+    return base64Audio || null;
 
   } catch (error) {
     console.error("Error generating audio:", error);
@@ -215,16 +192,11 @@ export async function generateFeedback(input: {
   completedTask: string;
   isFinal: boolean;
 }, language: 'en' | 'es'): Promise<Feedback> {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  if (!ai) throw new Error("API Key missing");
 
   const userPrompt = `$LANGUAGE: "${language}"\n$THEME: "${input.theme}"\n$ROLE: "${input.role}"\n$COMPLETED_TASK: "${input.completedTask}"\n$IS_FINAL: ${input.isFinal}`;
 
   try {
-    // Basic/Reactive Text Task -> Uses gemini-2.5-flash for speed
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: userPrompt,
@@ -242,7 +214,7 @@ export async function generateFeedback(input: {
       }
     });
 
-    const parsedFeedback = JSON.parse(response.text);
+    const parsedFeedback = cleanAndParseJson(response.text);
     return {
       ...parsedFeedback,
       id: generateId()
@@ -250,6 +222,6 @@ export async function generateFeedback(input: {
 
   } catch (error) {
     console.error("Error calling Gemini API for feedback:", error);
-    throw new Error("The storyteller is momentarily silent. Could not generate feedback.");
+    throw new Error("The storyteller is momentarily silent.");
   }
 }

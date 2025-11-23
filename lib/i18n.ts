@@ -1,4 +1,5 @@
 
+
 export const placeholderSagas = {
   en: [
     {
@@ -33,174 +34,308 @@ const translations = {
       rulesLabel: "Mission Rules (Habits/Breaks)",
       addRule: "Add Rule",
       generateButton: "Generate Saga",
-      generateButtonLoading: [
-        "Crafting Your Saga...",
-        "Summoning the Oracle...",
-        "Weaving Your Fate...",
-      ],
-      clearButton: "Clear All",
+      generateButtonLoading: "Materializing...",
+      clearButton: "Start Over",
+      active: "Active",
+      optional: "Optional",
+      backButton: "← Back",
     },
+    tooltips: {
+      inspire: "Summon creative ideas",
+      remove: "Dismiss item",
+      reorder: "Realign destiny",
+      add: "Add new objective",
+      narrate: "Listen to the chronicle",
+      settings: "Configuration",
+      themeLight: "Daydream Mode",
+      themeDark: "Starfall Mode",
+      themeMystic: "Mystic Mode",
+      langEN: "Switch to English",
+      langES: "Switch to Spanish",
+    },
+    loadingPhases: [
+      "Opening the portal to your world...",
+      "Translating tasks into epic quests...",
+      "Preparing your inventory...",
+      "Consulting the map...",
+      "Lighting the path ahead...",
+      "Drafting your legend...",
+    ],
     missionCard: {
       loading: [
-        "The Chronicler writes your destiny...",
-        "The threads of fate are weaving...",
-        "An ancient power awakens...",
-        "Portals to your adventure are opening...",
+        "Your story is coming to life...",
+        "The ink is drying on your scroll...",
+        "Adventure is calling...",
       ],
-      errorTitle: "A Shadow Falls",
+      errorTitle: "The Magic Fluctuated",
       placeholderTitle: "The Stage is Set",
-      placeholderBody: 'Your epic saga awaits its beginning. Fill in the details of your world and press "Generate Saga" to receive your mission.',
-      objectivesTitle: "Mission Objectives",
-      originalTaskLabel: "Original",
-      rulesTitle: "Mission Rules",
+      placeholderBody: 'Your epic saga awaits. Define your world above and press "Generate Saga" to begin your journey.',
+      objectivesTitle: "Quest Objectives",
+      originalTaskLabel: "Original Task",
+      rulesTitle: "Code of Conduct",
+      heroDefault: "Hero",
     },
     feedbackModal: {
       loadingTitle: [
-        "Awaiting the Oracle...",
-        "Recording your Legend...",
-        "Consulting the Stars...",
+        "Victory Secured!",
+        "Recording Triumph...",
+        "Splendid Work!",
       ],
       loadingBody: [
-        "The storyteller reflects on your great deeds...",
-        "The annals of history are being updated...",
-        "Your legend echoes through time...",
+        "Archiving this achievement in your history...",
+        "Your legend grows brighter...",
+        "Feeling the satisfaction of a job well done...",
       ],
-      closeButton: "Onward!",
+      closeButton: "Journey On!",
+    },
+    fallbackFeedback: {
+      title: "Victory!",
+      message: "You have completed all your objectives. A legendary achievement!"
     },
     toast: {
-      successTitle: "Objective Complete!",
+      successTitle: "Quest Updated!",
     },
     featsLog: {
-      title: "Recount of Feats",
+      title: "Journal of Deeds",
     },
     app: {
-      errorRequired: "Theme and at least one task are required to begin your saga.",
-      errorUnknown: "An unknown error occurred. The saga could not be written.",
-      footer: "Forged with Gemini",
+      errorRequired: "To begin, we need a universe and at least one mission.",
+      errorUnknown: "The connection to the story faded. Please try again.",
+      footer: "Powered by Gemini",
     },
     settings: {
-      theme: "Theme",
+      theme: "Atmosphere",
       language: "Language",
       tutorial: "Replay Tutorial",
     },
     tutorial: {
-      next: "Next",
+      next: "Let's Begin",
       skip: "Skip",
-      finish: "Finish",
-      steps: [
+      finish: "Ready",
+      onboardingSteps: [
         {
-          title: "Welcome to SagaFlow",
-          content: "Productivity meets epic storytelling. Let me show you how to turn your chores into legends.",
+          image: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Raccoon.png",
+          emoji: "🦝", 
+          title: "Welcome, Traveler",
+          // Format: Window Title ||| Hook/Headline ||| Body ||| Footer
+          content: "Welcome to the SagaFlow Demo|||Ready to turn that boring to-do list into your next adventure?|||Thank you for starting *your journey*.\nWe've been expecting you!|||Remember, this realm is still in Development. Let's keep in touch!",
+          socialLinks: [
+            { label: "Updates & Beacons", url: "https://beacons.ai/sagaflow/" },
+            { label: "Instagram", url: "https://www.instagram.com/sagaflowdev/" }
+          ]
         },
         {
-          title: "Choose Your World",
-          content: "Start by defining the universe. Cyberpunk? Medieval Fantasy? Or simply 'The Office'. The AI adapts to anything.",
+          emoji: "✨",
+          title: "Writer's Block?",
+          content: "No ideas? In a rush? Tap this magic button. It fills empty spots with instant creativity.",
         },
         {
-          title: "Define Your Missions",
-          content: "List your real-world tasks here. 'Wash dishes', 'Send report', etc. These will become your heroic objectives.",
+          emoji: "🌍",
+          title: "Build Your World",
+          content: "Where is your story set? Hogwarts? Night City? Eden Academy? Type it here and SagaCore does the rest.",
         },
         {
-          title: "Ignite the Saga",
-          content: "Click generate and watch as Gemini rewrites your boring list into a high-stakes narrative adventure.",
+          emoji: "🦸",
+          title: "Who are you?",
+          content: "Don't just be 'yourself.' Be a Sith or a Jedi, a Warrior or a Mage. Define who saves the day today.",
         },
         {
-          title: "Fulfill Your Destiny",
-          content: "Your mission appears here. As you check off tasks in real life, check them off here to receive epic feedback and track your feats.",
+          emoji: "📝",
+          title: "The Real Mission",
+          content: "Here goes the boring stuff. List your REAL tasks (e.g., 'Review Chapter 5', 'Algebra Exercises', 'Wash Dishes'). We transform them into epic quests.",
+        },
+        {
+          emoji: "🛡️",
+          title: "Code of Honor",
+          content: "Add constraints like 'No phone' or 'Drink water'. These become the sacred laws of your journey.",
+        },
+        {
+          emoji: "🔮",
+          title: "Forged by Magic",
+          content: "When ready, press here. The magic takes a few seconds to materialize your unique saga.",
         },
       ],
+      missionSteps: [
+        {
+            title: "Your Saga Begins",
+            content: "You are no longer in your room. Read the scenario above to understand your new reality and mission.",
+        },
+        {
+            title: "The Narrator",
+            content: "Tired eyes? Click the speaker icon to have the AI narrate your mission briefing with a cinematic voice.",
+        },
+        {
+            title: "Execute & Conquer",
+            content: "This is the magic. When you finish a task in REAL LIFE, check it off here to receive an immediate narrative reward.",
+        },
+        {
+            title: "Journal of Deeds",
+            content: "Your victories are recorded here. Watch your legend grow with every step you take.",
+        },
+        {
+            title: "Return / Edit",
+            content: "Need to adjust the plan? Use this button to go back to the configuration.",
+        }
+      ]
     },
   },
   es: {
     header: {
       title: "SagaFlow",
-      subtitle: "Transforma tu lista de tareas en una aventura épica.",
+      subtitle: "Convierte tu lista de tareas en una leyenda.",
     },
     inputSection: {
       themeLabel: "Universo y Temática",
       inspireMe: "Inspírame",
-      tasksLabel: "Misiones Clave (Tareas Reales)",
-      addTask: "Añadir Misión",
+      tasksLabel: "Tus Tareas",
+      addTask: "Añadir Tarea",
       roleLabel: "Tu Protagonista (Opcional)",
-      rulesLabel: "Reglas de Misión (Hábitos/Pausas)",
+      rulesLabel: "Reglas / Restricciones",
       addRule: "Añadir Regla",
       generateButton: "Generar Saga",
-      generateButtonLoading: [
-        "Forjando tu Saga...",
-        "Invocando al Oráculo...",
-        "Tejiendo el Destino...",
-      ],
+      generateButtonLoading: "Creando Aventura...",
       clearButton: "Empezar de Nuevo",
+      active: "Activas",
+      optional: "Opcional",
+      backButton: "← Volver",
     },
+    tooltips: {
+      inspire: "Generar ideas aleatorias",
+      remove: "Eliminar",
+      reorder: "Reordenar",
+      add: "Añadir objetivo",
+      narrate: "Narrar historia",
+      settings: "Configuración",
+      themeLight: "Modo Día",
+      themeDark: "Modo Noche",
+      themeMystic: "Modo Místico",
+      langEN: "Cambiar a Inglés",
+      langES: "Cambiar a Español",
+    },
+    loadingPhases: [
+      "Abriendo el portal a tu mundo...",
+      "Traduciendo tareas a misiones épicas...",
+      "Preparando tu inventario...",
+      "Consulting the map...",
+      "Iluminando el camino...",
+      "Escribiendo tu leyenda...",
+    ],
     missionCard: {
       loading: [
-        "El Cronista escribe tu destino...",
-        "Los hilos del destino se entrelazan...",
-        "Un poder ancestral despierta...",
-        "Se abren los portales a tu aventura...",
+        "Tu historia está cobrando vida...",
+        "La tinta se seca en el pergamino...",
+        "La aventura te llama...",
       ],
-      errorTitle: "Una Sombra Cae",
+      errorTitle: "Hubo un problema mágico",
       placeholderTitle: "El Escenario Está Listo",
-      placeholderBody: 'Tu saga épica aguarda. Dale forma a tu mundo y presiona "Generar Saga" para recibir tu llamado a la aventura.',
+      placeholderBody: 'Tu saga épica aguarda. Define tu mundo arriba y presiona "Generar Saga" para comenzar tu viaje.',
       objectivesTitle: "Objetivos de la Misión",
-      originalTaskLabel: "Misión Original",
+      originalTaskLabel: "Tarea Original",
       rulesTitle: "Reglas de la Misión",
+      heroDefault: "Héroe",
     },
     feedbackModal: {
       loadingTitle: [
-        "Esperando al Oráculo...",
-        "Grabando tu Leyenda...",
-        "Consultando las Estrellas...",
+        "¡Victoria Asegurada!",
+        "Registrando Triunfo...",
+        "¡Excelente Trabajo!",
       ],
       loadingBody: [
-        "El narrador medita sobre tus hazañas...",
-        "Los anales de la historia se actualizan...",
-        "Tu leyenda resuena a través del tiempo...",
+        "Guardando este logro en tu historia...",
+        "Tu leyenda crece...",
+        "Sintiendo la satisfacción del deber cumplido...",
       ],
-      closeButton: "¡Adelante!",
+      closeButton: "¡Continuar!",
+    },
+    fallbackFeedback: {
+      title: "¡Victoria!",
+      message: "Has completado todos tus objetivos. ¡Un logro legendario!"
     },
     toast: {
-      successTitle: "¡Objetivo Completado!",
+      successTitle: "¡Progreso Guardado!",
     },
     featsLog: {
-      title: "Crónica de Hazañas",
+      title: "Diario de Hazañas",
     },
     app: {
-      errorRequired: "Para comenzar tu saga, necesitas un universo y al menos una misión.",
-      errorUnknown: "Un error inesperado impidió que se escribiera la saga.",
-      footer: "Forjado con Gemini",
+      errorRequired: "Para comenzar, necesitamos un universo y al menos una tarea.",
+      errorUnknown: "La conexión con la historia se perdió. Inténtalo de nuevo.",
+      footer: "Motor SagaCore by SagaFlow",
     },
     settings: {
-      theme: "Tema",
+      theme: "Tema Visual",
       language: "Idioma",
       tutorial: "Ver Tutorial",
     },
     tutorial: {
-      next: "Siguiente",
+      next: "¡Vamos!",
       skip: "Saltar",
-      finish: "Finalizar",
-      steps: [
+      finish: "¡Listo!",
+      onboardingSteps: [
         {
-          title: "Bienvenido a SagaFlow",
-          content: "Donde la productividad encuentra la narrativa épica. Déjame mostrarte cómo convertir tus quehaceres en leyendas.",
+          image: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Raccoon.png",
+          emoji: "🦝", 
+          title: "Bienvenido, Viajero",
+          // Format: Window Title ||| Hook/Headline ||| Body ||| Footer
+          content: "Bienvenido a la Demo de SagaFlow|||¿Listo para convertir esa aburrida lista de pendientes en tu próxima aventura?|||Muchas gracias por comenzar *tu viaje*.\n¡Te estábamos esperando!|||Recuerda que esta app sigue en Desarrollo. ¡Sigamos en contacto!",
+          socialLinks: [
+            { label: "Novedades y Beacons", url: "https://beacons.ai/sagaflow/" },
+            { label: "Instagram", url: "https://www.instagram.com/sagaflowdev/" }
+          ]
         },
         {
-          title: "Elige tu Mundo",
-          content: "Define tu universo. ¿Cyberpunk? ¿Fantasía Medieval? ¿La Oficina? La IA se adaptará a cualquier cosa.",
+          emoji: "✨",
+          title: "¿Bloqueo Creativo?",
+          content: "¿Sin ideas o con prisa? Toca este botón mágico. Rellenará los espacios vacíos con creatividad instantánea.",
         },
         {
-          title: "Define tus Misiones",
-          content: "Lista tus tareas reales aquí. 'Lavar platos', 'Enviar informe'. Estas se convertirán en tus objetivos heroicos.",
+          emoji: "🌍",
+          title: "Construye tu Mundo",
+          content: "¿Dónde ocurre tu historia? ¿Hogwarts? ¿Night City? ¿La Academia Eden? Escríbelo aquí y SagaCore hará el resto.",
         },
         {
-          title: "Inicia la Saga",
-          content: "Haz clic en generar y observa cómo Gemini reescribe tu aburrida lista en una aventura de alto riesgo.",
+          emoji: "🦸",
+          title: "¿Quién eres tú?",
+          content: "¿No seas 'tú mismo'. Puedes ser un Sith o un Jedi, un Guerrero o un Mago. Define quién va a salvar el día hoy.",
         },
         {
-          title: "Cumple tu Destino",
-          content: "Tu misión aparecerá aquí. Al completar tareas en la vida real, márcalas aquí para recibir feedback épico y registrar tus hazañas.",
+          emoji: "📝",
+          title: "La Misión Real",
+          content: "Aquí va lo aburrido. Escribe tus tareas REALES (ej. 'Repasar Capítulo 5', 'Resolver Ejercicios de Álgebra', 'Lavar los Platos'). Nosotros las traduciremos a lenguaje épico.",
+        },
+        {
+          emoji: "🛡️",
+          title: "Código de Honor",
+          content: "Añade condiciones como 'Sin celular' o 'Beber agua'. Se convertirán en leyes sagradas de tu viaje.",
+        },
+        {
+          emoji: "🔮",
+          title: "Forged by Magic",
+          content: "Cuando estés listo, presiona aquí. La magia tarda unos segundos en materializarse.",
         },
       ],
+      missionSteps: [
+        {
+            title: "Tu Saga Comienza",
+            content: "Ya no estás en tu habitación. Lee el escenario arriba para entender tu nueva realidad y objetivo.",
+        },
+        {
+            title: "El Narrador",
+            content: "¿Ojos cansados? Haz clic en el altavoz para que la IA narre tu informe de misión con voz cinematográfica.",
+        },
+        {
+            title: "Ejecuta y Gana",
+            content: "Aquí está la magia. Cuando termines una tarea en la VIDA REAL, márcala aquí para recibir una recompensa narrativa inmediata.",
+        },
+        {
+            title: "Diario de Hazañas",
+            content: "Tus victorias se registran aquí abajo. Observa cómo crece tu leyenda con cada paso.",
+        },
+        {
+            title: "Volver / Editar",
+            content: "¿Necesitas ajustar el plan? Usa este botón para regresar a la configuración.",
+        }
+      ]
     },
   },
 };
@@ -234,7 +369,7 @@ export const t = (key: string, lang: Language): any => {
     // Only return a random element if it's an array of strings (flavor text).
     // If it contains objects (like tutorial steps), return the full array.
     if (result.length > 0 && typeof result[0] === 'string') {
-      return result[Math.floor(Math.random() * result.length)];
+      return result;
     }
     return result;
   }
