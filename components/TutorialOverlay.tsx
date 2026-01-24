@@ -169,32 +169,55 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ isActive, onClose, la
   const isLastStep = currentStep === steps.length - 1;
   const isWelcomeStep = currentStep === 0 && type === 'onboarding'; 
 
+  // --- Optimized Positioning Logic ---
+  
+  // Base style for Mobile / Default
+  // We use Bottom Sheet style for non-welcome steps on mobile to avoid blocking inputs
   let tooltipStyle: React.CSSProperties = {
     position: 'fixed',
     left: '50%',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: isWelcomeStep ? '95vw' : '90vw',
-    maxWidth: isWelcomeStep ? '480px' : '400px',
     zIndex: 101,
+    top: isWelcomeStep ? '50%' : 'auto', 
+    bottom: isWelcomeStep ? 'auto' : '32px',
+    transform: isWelcomeStep ? 'translate(-50%, -50%)' : 'translateX(-50%)',
+    width: 'calc(100% - 32px)', 
+    maxWidth: isWelcomeStep ? '480px' : '400px',
   };
 
+  // Logic for Desktop Targeted Tooltips
   if (targetRect && !isMobile && !isWelcomeStep) {
     const spaceBelow = window.innerHeight - (targetRect.y + targetRect.height);
     const placeBelow = spaceBelow > 220;
+    
+    const modalWidth = 400;
+    const padding = 20;
+    const safeRightEdge = window.innerWidth - padding;
+    
+    let leftPos = targetRect.x;
+    
+    // Prevent right overflow
+    if (leftPos + modalWidth > safeRightEdge) {
+        leftPos = safeRightEdge - modalWidth;
+    }
+    // Prevent left overflow
+    if (leftPos < padding) {
+        leftPos = padding;
+    }
 
     tooltipStyle = {
       position: 'absolute',
-      left: targetRect.x + targetRect.width - 400 > 0 ? (targetRect.x > window.innerWidth - 420 ? window.innerWidth - 420 : targetRect.x) : 20,
-      top: placeBelow ? targetRect.y + targetRect.height + 20 : targetRect.y - 20 - 200,
-      width: '400px',
+      left: leftPos,
+      top: placeBelow ? targetRect.y + targetRect.height + 20 : targetRect.y - 20 - 200, // 200 approx height
+      width: `${modalWidth}px`,
       maxWidth: '90vw',
       transform: 'none',
       zIndex: 101,
     };
     
-    if (parseInt(tooltipStyle.top as string) < 10) tooltipStyle.top = 10;
-    if (parseInt(tooltipStyle.left as string) < 10) tooltipStyle.left = 10;
+    // Prevent top overflow
+    if (typeof tooltipStyle.top === 'number' && tooltipStyle.top < 20) {
+        tooltipStyle.top = 20;
+    }
   }
 
   // Helper to parse welcome message parts

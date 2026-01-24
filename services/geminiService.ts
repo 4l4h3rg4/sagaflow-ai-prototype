@@ -2,19 +2,22 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { SagaInput, Saga, Feedback } from '../types';
 
-// Singleton instance to avoid overhead
-const apiKey = process.env.API_KEY;
-if (!apiKey) {
-  console.error("API_KEY environment variable not set.");
-}
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
-
 // Helper for ID generation
 function generateId(): string {
   if (typeof self.crypto !== 'undefined' && typeof self.crypto.randomUUID === 'function') {
     return self.crypto.randomUUID();
   }
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+// Helper to safely access env vars without crashing in browsers lacking 'process'
+function getApiKey(): string | undefined {
+  try {
+    return process.env.API_KEY;
+  } catch (e) {
+    // In some client-side environments, accessing process directly throws ReferenceError
+    return undefined;
+  }
 }
 
 // --- Robust JSON Parsing ---
@@ -70,7 +73,10 @@ Generarás un título y un mensaje épicos y temáticos para el usuario.
 `;
 
 export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Promise<Saga> {
-  if (!ai) throw new Error("API Key missing");
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("API Key missing. Please configure your API_KEY in the environment.");
+  
+  const ai = new GoogleGenAI({ apiKey });
 
   let userPrompt = `$LANGUAGE: "${language}"\n$THEME: "${input.theme}"\n$TASKS: ${JSON.stringify(input.tasks.filter(t => t.trim()))}`;
   
@@ -85,11 +91,12 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-2.5-flash', // Switched to Flash for speed/reliability in demos
       contents: userPrompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 }, // Disable thinking for faster response on creative tasks
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -135,22 +142,31 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
 }
 
 export async function generateScenarioImage(theme: string, scenario: string): Promise<string | null> {
-  if (!ai) return null;
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
-    const response = await ai.models.generateImages({
-      model: 'imagen-4.0-generate-001',
-      prompt: `Cinematic, epic digital art concept for a video game background. Theme: ${theme}. Scene description: ${scenario.substring(0, 250)}. Wide angle, atmospheric lighting, highly detailed, matte painting style. No text, no HUD, no UI elements.`,
-      config: {
-        numberOfImages: 1,
-        outputMimeType: 'image/jpeg',
-        aspectRatio: '16:9',
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            text: `Cinematic, epic digital art concept for a video game background. Theme: ${theme}. Scene description: ${scenario.substring(0, 250)}. Wide angle, atmospheric lighting, highly detailed, matte painting style. No text, no HUD, no UI elements.`,
+          },
+        ],
       },
+      // responseMimeType and responseSchema are not supported for nano banana series models
     });
 
-    if (response.generatedImages && response.generatedImages.length > 0) {
-      const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-      return `data:image/jpeg;base64,${base64ImageBytes}`;
+    if (response.candidates && response.candidates.length > 0) {
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                const base64EncodeString = part.inlineData.data;
+                const mimeType = part.inlineData.mimeType || 'image/png';
+                return `data:${mimeType};base64,${base64EncodeString}`;
+            }
+        }
     }
     return null;
   } catch (error) {
@@ -161,7 +177,9 @@ export async function generateScenarioImage(theme: string, scenario: string): Pr
 
 // Optimized: Returns base64 string only. Decoding happens in the component to save AudioContexts.
 export async function generateNarratorAudio(text: string, language: 'en' | 'es'): Promise<string | null> {
-  if (!ai) return null;
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const response = await ai.models.generateContent({
@@ -192,7 +210,9 @@ export async function generateFeedback(input: {
   completedTask: string;
   isFinal: boolean;
 }, language: 'en' | 'es'): Promise<Feedback> {
-  if (!ai) throw new Error("API Key missing");
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("API Key missing");
+  const ai = new GoogleGenAI({ apiKey });
 
   const userPrompt = `$LANGUAGE: "${language}"\n$THEME: "${input.theme}"\n$ROLE: "${input.role}"\n$COMPLETED_TASK: "${input.completedTask}"\n$IS_FINAL: ${input.isFinal}`;
 
@@ -203,6 +223,7 @@ export async function generateFeedback(input: {
       config: {
         systemInstruction: FEEDBACK_SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 },
         responseSchema: {
           type: Type.OBJECT,
           properties: {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useSagaGamification } from './hooks/useSagaGamification';
 import InputSection from './components/InputSection';
@@ -131,6 +132,21 @@ const App: React.FC = () => {
 
             {!isMissionActive ? (
                 <div className="animate-slide-up pb-safe">
+                    {error && (
+                        <div className="mb-6 mx-2 sm:mx-0 p-4 bg-red-900/20 border border-red-500/50 rounded-xl flex items-start gap-3 animate-fade-in text-left shadow-lg backdrop-blur-md">
+                             <div className="text-red-400 mt-0.5 shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                             </div>
+                             <div>
+                                 <h3 className="text-red-400 font-bold text-sm uppercase tracking-wider mb-1">
+                                    {t('missionCard.errorTitle', language)}
+                                 </h3>
+                                 <p className="text-white/90 text-sm font-medium leading-relaxed">{error}</p>
+                             </div>
+                        </div>
+                    )}
                     <InputSection
                         sagaInput={sagaInput}
                         setSagaInput={setSagaInput}
