@@ -115,7 +115,7 @@ const translations = {
       onboardingSteps: [
         {
           image: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Raccoon.png",
-          emoji: "🦝",
+          emoji: "🦝", 
           title: "Welcome, Traveler",
           // Format: Window Title ||| Hook/Headline ||| Body ||| Footer
           content: "Welcome to the SagaFlow Demo|||Ready to turn that boring to-do list into your next adventure?|||Thank you for starting *your journey*.\nWe've been expecting you!|||Remember, this realm is still in Development. Let's keep in touch!",
@@ -157,28 +157,27 @@ const translations = {
       ],
       missionSteps: [
         {
-          title: "Your Saga Begins",
-          content: "You are no longer in your room. Read the scenario above to understand your new reality and mission.",
+            title: "Your Saga Begins",
+            content: "You are no longer in your room. Read the scenario above to understand your new reality and mission.",
         },
         {
-          title: "The Narrator",
-          content: "Tired eyes? Click the speaker icon to have the AI narrate your mission briefing with a cinematic voice.",
+            title: "The Narrator",
+            content: "Tired eyes? Click the speaker icon to have the AI narrate your mission briefing with a cinematic voice.",
         },
         {
-          title: "Execute & Conquer",
-          content: "This is the magic. When you finish a task in REAL LIFE, check it off here to receive an immediate narrative reward.",
+            title: "Execute & Conquer",
+            content: "This is the magic. When you finish a task in REAL LIFE, check it off here to receive an immediate narrative reward.",
         },
         {
-          title: "Journal of Deeds",
-          content: "Your victories are recorded here. Watch your legend grow with every step you take.",
+            title: "Journal of Deeds",
+            content: "Your victories are recorded here. Watch your legend grow with every step you take.",
         },
         {
-          title: "Return / Edit",
-          content: "Need to adjust the plan? Use this button to go back to the configuration.",
+            title: "Return / Edit",
+            content: "Need to adjust the plan? Use this button to go back to the configuration.",
         }
       ]
     },
-    restoringSession: "Restoring your adventure...",
   },
   es: {
     header: {
@@ -275,7 +274,7 @@ const translations = {
       onboardingSteps: [
         {
           image: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Raccoon.png",
-          emoji: "🦝",
+          emoji: "🦝", 
           title: "Bienvenido, Viajero",
           // Format: Window Title ||| Hook/Headline ||| Body ||| Footer
           content: "Bienvenido a la Demo de SagaFlow|||¿Listo para convertir esa aburrida lista de pendientes en tu próxima aventura?|||Muchas gracias por comenzar *tu viaje*.\n¡Te estábamos esperando!|||Recuerda que esta app sigue en Desarrollo. ¡Sigamos en contacto!",
@@ -317,28 +316,27 @@ const translations = {
       ],
       missionSteps: [
         {
-          title: "Tu Saga Comienza",
-          content: "Ya no estás en tu habitación. Lee el escenario arriba para entender tu nueva realidad y objetivo.",
+            title: "Tu Saga Comienza",
+            content: "Ya no estás en tu habitación. Lee el escenario arriba para entender tu nueva realidad y objetivo.",
         },
         {
-          title: "El Narrador",
-          content: "¿Ojos cansados? Haz clic en el altavoz para que la IA narre tu informe de misión con voz cinematográfica.",
+            title: "El Narrador",
+            content: "¿Ojos cansados? Haz clic en el altavoz para que la IA narre tu informe de misión con voz cinematográfica.",
         },
         {
-          title: "Ejecuta y Gana",
-          content: "Aquí está la magia. Cuando termines una tarea en la VIDA REAL, márcala aquí para recibir una recompensa narrativa inmediata.",
+            title: "Ejecuta y Gana",
+            content: "Aquí está la magia. Cuando termines una tarea en la VIDA REAL, márcala aquí para recibir una recompensa narrativa inmediata.",
         },
         {
-          title: "Diario de Hazañas",
-          content: "Tus victorias se registran aquí abajo. Observa cómo crece tu leyenda con cada paso.",
+            title: "Diario de Hazañas",
+            content: "Tus victorias se registran aquí abajo. Observa cómo crece tu leyenda con cada paso.",
         },
         {
-          title: "Volver / Editar",
-          content: "¿Necesitas ajustar el plan? Usa este botón para regresar a la configuración.",
+            title: "Volver / Editar",
+            content: "¿Necesitas ajustar el plan? Usa este botón para regresar a la configuración.",
         }
       ]
     },
-    restoringSession: "Restaurando tu aventura...",
   },
 };
 
@@ -346,7 +344,7 @@ type Language = keyof typeof translations;
 
 export const t = (key: string, lang: Language): any => {
   const keys = key.split('.');
-
+  
   const findTranslation = (language: Language) => {
     let branch: any = translations[language];
     for (const k of keys) {
