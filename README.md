@@ -1,20 +1,73 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+🎮 SagaFlow - Gamificación con Narrativa para Neurodivergentes
+Transforma tus tareas diarias en aventuras épicas personalizadas.
+SagaFlow convierte estudiar cálculo en una misión de Harry Potter,
+o hacer ejercicio en una búsqueda al estilo Zelda.
 
-# Run and deploy your AI Studio app
+🎯 ¿Para quién es?
+Diseñado específicamente para personas neurodivergentes (TDAH, TEA) o 
+de 15-30 años que luchan con concentración y organización de tareas.
 
-This contains everything you need to run your app locally.
+✨ ¿Qué hace diferente a SagaFlow?
 
-View your app in AI Studio: https://ai.studio/apps/drive/1oJN0eSYxecethIY4Y6xQzAJFrX7AoTD3
+❌ NO es otro clon de Habitica con estadísticas RPG
+✅ Genera narrativas temáticas personalizadas por IA
+✅ Celebra el esfuerzo sin castigar la inconsistencia
+✅ Feedback inmediato y dopamina visual
+✅ Inspirado en fandoms e imaginación narrativa
 
-## Run Locally
+🛠️ Tecnologías
 
-**Prerequisites:**  Node.js
+Frontend: React + TypeScript
+IA: Google Gemini API para generación narrativa
+Build: Vite
+Desarrollo: AI-assisted coding con Google AI Studio
+
+🗺️ Roadmap
+✅ Fase 1: MVP (Actual)
+
+✓ Generación básica de narrativas con IA
+✓ Sistema de tareas con checkboxes
+✓ Componentes de feedback
+✓ Hook de narración por audio
+
+🔄 Fase 2: En desarrollo
+
+🎨 Badges de logros visuales
+🔥 Contadores de rachas
+🎵 Efectos de sonido temáticos
+📊 Barras de progreso épicas
+✨ Micro-interacciones y animaciones
+
+📋 Fase 3: Planeado
+
+🎯 Sistema XP/Niveles compasivo
+📅 Misiones diarias temáticas
+🔔 Notificaciones narrativas push
+📱 PWA y eventual app móvil
+
+🎨 Filosofía de Diseño
+SagaFlow se enfoca en narrativa sobre estadísticas. No queremos generar ansiedad por números rojos o rachas perdidas. Queremos que cada tarea se sienta como parte de una historia épica donde TÚ eres el protagonista.
+Principios clave:
+
+Dopamina positiva, no culpa
+Inmersión temática sobre mecánicas RPG
+Accesibilidad para neurodivergentes primero
+Celebrar el esfuerzo, no la perfección
+
+🤝 Contribuciones
+Este es un proyecto en desarrollo activo creado por una persona neurodivergente para la comunidad neurodivergente.
+Si tienes ideas, feedback o quieres colaborar, ¡abre un issue o contáctame por Instagram!
+
+💬 Contacto y Actualizaciones
+📸 Instagram: @sagaflowdev
+
+Sígueme para:
+
+Ver el progreso del desarrollo dia a dia
+Sneak peeks de nuevas funciones
+Compartir feedback y sugerencias
+Conectar con la comunidad
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+💜 Hecho con amor de y para la comunidad neurodivergente
+"Porque nuestros cerebros no están rotos, solo necesitan una interfaz diferente"
