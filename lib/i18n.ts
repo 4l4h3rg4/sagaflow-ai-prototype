@@ -95,6 +95,13 @@ const translations = {
     toast: {
       successTitle: "Quest Updated!",
     },
+    timer: {
+      extendJourney: "Extend Journey",
+      campfireRest: "Campfire Rest",
+      resting: "Resting by the campfire... MM:SS",
+      sessionComplete: "Focus session complete! Your journey was brave.",
+      timeRemaining: "Time on the road"
+    },
     featsLog: {
       title: "Journal of Deeds",
     },
@@ -254,6 +261,13 @@ const translations = {
     },
     toast: {
       successTitle: "¡Progreso Guardado!",
+    },
+    timer: {
+      extendJourney: "Extender Viaje",
+      campfireRest: "Descanso en Fogata",
+      resting: "Descansando junto a la fogata... MM:SS",
+      sessionComplete: "¡Sesión de enfoque completada! Tu viaje ha sido valiente.",
+      timeRemaining: "Tiempo en el camino"
     },
     featsLog: {
       title: "Diario de Hazañas",

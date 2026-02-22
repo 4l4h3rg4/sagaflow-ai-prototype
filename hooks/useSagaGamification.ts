@@ -19,6 +19,19 @@ export const useSagaGamification = (language: 'en' | 'es') => {
   // Persistence Loading State
   const [isRestoring, setIsRestoring] = useState(true);
 
+  // Timer State
+  const [timerState, setTimerState] = useState({
+    totalSeconds: 0,
+    remainingSeconds: 0,
+    isRunning: false,
+    isOnBreak: false,
+    breakRemaining: 0,
+  });
+
+  const updateTimerState = useCallback((newState: Partial<typeof timerState>) => {
+    setTimerState(prev => ({ ...prev, ...newState }));
+  }, []);
+
   // Visuals & Feedback
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -31,6 +44,12 @@ export const useSagaGamification = (language: 'en' | 'es') => {
   const [loadingMessage, setLoadingMessage] = useState<string>("");
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMountedRef = useRef(true);
+
+  // Refs for current values (used by auto-save)
+  const currentStateRef = useRef({ sagaInput, mission, completedFeats, timerState });
+  useEffect(() => {
+    currentStateRef.current = { sagaInput, mission, completedFeats, timerState };
+  }, [sagaInput, mission, completedFeats, timerState]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -50,6 +69,36 @@ export const useSagaGamification = (language: 'en' | 'es') => {
             setBackgroundImage(session.mission.imageUrl);
             setBackgroundOpacity(1);
           }
+
+          if (session.timerIsRunning !== undefined) {
+            const elapsed = Math.floor((Date.now() - session.savedAt) / 1000);
+            let newRemaining = (session.timerRemainingSeconds || 0);
+            let newBreak = (session.timerBreakRemaining || 0);
+            let isOnBreak = session.timerIsOnBreak || false;
+
+            if (session.timerIsRunning) {
+              if (isOnBreak) {
+                newBreak -= elapsed;
+                if (newBreak <= 0) {
+                  isOnBreak = false;
+                  newRemaining -= Math.abs(newBreak);
+                }
+              } else {
+                newRemaining -= elapsed;
+              }
+            }
+
+            newRemaining = Math.max(0, newRemaining);
+            newBreak = Math.max(0, newBreak);
+
+            setTimerState({
+              totalSeconds: session.timerTotalSeconds || 0,
+              remainingSeconds: newRemaining,
+              isRunning: session.timerIsRunning,
+              isOnBreak: isOnBreak,
+              breakRemaining: newBreak,
+            });
+          }
         }
       } catch (e) {
         console.error("Failed to restore session", e);
@@ -60,16 +109,74 @@ export const useSagaGamification = (language: 'en' | 'es') => {
     restore();
   }, []);
 
-  // Auto-save
+  // Timer countdown logic
+  useEffect(() => {
+    if (!timerState.isRunning || isLoading || isRestoring) return;
+
+    const interval = setInterval(() => {
+      setTimerState(prev => {
+        if (!prev.isRunning) return prev;
+
+        if (prev.isOnBreak) {
+          if (prev.breakRemaining > 0) {
+            const newBreak = prev.breakRemaining - 1;
+            return { ...prev, breakRemaining: newBreak, isOnBreak: newBreak > 0 };
+          } else {
+            return { ...prev, isOnBreak: false };
+          }
+        } else {
+          if (prev.remainingSeconds > 0) {
+            return { ...prev, remainingSeconds: prev.remainingSeconds - 1 };
+          }
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timerState.isRunning, isLoading, isRestoring]);
+
+  // General Auto-save
   useEffect(() => {
     if (isRestoring || isLoading) return;
 
     const timer = setTimeout(() => {
-      saveCurrentSession({ sagaInput, mission, completedFeats });
+      const state = currentStateRef.current;
+      saveCurrentSession({
+        sagaInput: state.sagaInput,
+        mission: state.mission,
+        completedFeats: state.completedFeats,
+        timerTotalSeconds: state.timerState.totalSeconds,
+        timerRemainingSeconds: state.timerState.remainingSeconds,
+        timerIsRunning: state.timerState.isRunning,
+        timerIsOnBreak: state.timerState.isOnBreak,
+        timerBreakRemaining: state.timerState.breakRemaining
+      });
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [sagaInput, mission, completedFeats, isRestoring, isLoading]);
+  }, [sagaInput, mission, completedFeats, isRestoring, isLoading]); // Only trigger on specific changes, ref gives latest timer
+
+  // Timer 10s specific save interval
+  useEffect(() => {
+    if (isRestoring || isLoading || !timerState.isRunning) return;
+
+    const interval = setInterval(() => {
+      const state = currentStateRef.current;
+      saveCurrentSession({
+        sagaInput: state.sagaInput,
+        mission: state.mission,
+        completedFeats: state.completedFeats,
+        timerTotalSeconds: state.timerState.totalSeconds,
+        timerRemainingSeconds: state.timerState.remainingSeconds,
+        timerIsRunning: state.timerState.isRunning,
+        timerIsOnBreak: state.timerState.isOnBreak,
+        timerBreakRemaining: state.timerState.breakRemaining
+      });
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [timerState.isRunning, isRestoring, isLoading]);
 
 
   // --- Logic ---
@@ -118,6 +225,13 @@ export const useSagaGamification = (language: 'en' | 'es') => {
       if (!isMountedRef.current) return;
 
       setMission(result);
+      setTimerState({
+        totalSeconds: 1500,
+        remainingSeconds: 1500,
+        isRunning: true,
+        isOnBreak: false,
+        breakRemaining: 0,
+      });
       setIsImageLoading(true);
 
       // Async Image Generation
@@ -162,6 +276,13 @@ export const useSagaGamification = (language: 'en' | 'es') => {
 
     setSagaInput({ theme: '', tasks: [''], prompt: '', constraints: [''] });
     setMission(null);
+    setTimerState({
+      totalSeconds: 0,
+      remainingSeconds: 0,
+      isRunning: false,
+      isOnBreak: false,
+      breakRemaining: 0,
+    });
     setError(null);
     setCompletedFeats([]);
     setBackgroundOpacity(0);
@@ -254,6 +375,9 @@ export const useSagaGamification = (language: 'en' | 'es') => {
     completedFeats,
     finalFeedback,
     setFinalFeedback,
+    timerState,
+    updateTimerState,
+    timerIsOnBreak: timerState.isOnBreak,
     actions: {
       generateMission,
       clearAll,

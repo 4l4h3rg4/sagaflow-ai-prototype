@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const {
     sagaInput, setSagaInput, mission, isLoading, isRestoring, isImageLoading, loadingMessage, error,
     backgroundImage, backgroundOpacity, toast, setToast, completedFeats, finalFeedback, setFinalFeedback,
-    actions
+    timerState, updateTimerState, actions
   } = useSagaGamification(language);
 
   const isMountedRef = useRef(true);
@@ -177,6 +177,8 @@ const App: React.FC = () => {
                   error={error}
                   onToggleObjective={actions.toggleObjective}
                   language={language}
+                  timerState={timerState}
+                  onTimerStateChange={updateTimerState}
                 />
                 <FeatsLog feats={completedFeats} language={language} />
 

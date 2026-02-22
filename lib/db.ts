@@ -7,6 +7,11 @@ export interface CurrentSession {
     mission: Saga | null;
     completedFeats: Feedback[];
     savedAt: number;
+    timerTotalSeconds?: number;
+    timerRemainingSeconds?: number;
+    timerIsRunning?: boolean;
+    timerIsOnBreak?: boolean;
+    timerBreakRemaining?: number;
 }
 
 export interface SagaHistoryItem {
@@ -28,6 +33,10 @@ export class SagaFlowDB extends Dexie {
     constructor() {
         super('SagaFlowDB');
         this.version(1).stores({
+            currentSession: 'id',
+            sagaHistory: '++id, createdAt'
+        });
+        this.version(2).stores({
             currentSession: 'id',
             sagaHistory: '++id, createdAt'
         });
