@@ -6,6 +6,7 @@ import MissionCard from './components/MissionCard';
 import FeedbackModal from './components/FeedbackModal';
 import ToastNotification from './components/ToastNotification';
 import FeatsLog from './components/FeatsLog';
+import CheckInPopup from './components/CheckInPopup';
 import TutorialOverlay from './components/TutorialOverlay';
 import SettingsMenu from './components/SettingsMenu';
 import LoadingSpinner from './components/icons/LoadingSpinner';
@@ -24,7 +25,7 @@ const App: React.FC = () => {
   const {
     sagaInput, setSagaInput, mission, isLoading, isRestoring, isImageLoading, loadingMessage, error,
     backgroundImage, backgroundOpacity, toast, setToast, completedFeats, finalFeedback, setFinalFeedback,
-    timerState, updateTimerState, actions
+    timerState, updateTimerState, checkInState, actions
   } = useSagaGamification(language);
 
   const isMountedRef = useRef(true);
@@ -41,8 +42,8 @@ const App: React.FC = () => {
   }, [language]);
 
   useEffect(() => {
-    const tutorialDone = localStorage.getItem('sagaFlowTutorialDone');
-    if (!tutorialDone) setTimeout(() => setTutorialState({ isActive: true, type: 'onboarding' }), 1000);
+    // const tutorialDone = localStorage.getItem('sagaFlowTutorialDone');
+    // if (!tutorialDone) setTimeout(() => setTutorialState({ isActive: true, type: 'onboarding' }), 1000);
   }, []);
 
   useEffect(() => {
@@ -211,6 +212,18 @@ const App: React.FC = () => {
           language={language}
         />
       )}
+
+      <CheckInPopup
+        isVisible={checkInState.showCheckIn}
+        checkInMessage={checkInState.checkInMessage}
+        isLoadingMicroGoals={checkInState.isLoadingMicroGoals}
+        microGoals={checkInState.microGoals}
+        language={language}
+        onDismiss={actions.handleCheckInDismiss}
+        onBlocked={actions.handleCheckInBlocked}
+        onBreak={actions.handleCheckInBreak}
+        onAcceptMicroGoals={actions.handleAcceptMicroGoals}
+      />
 
       <style>{`
         @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

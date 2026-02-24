@@ -102,6 +102,18 @@ const translations = {
       sessionComplete: "Focus session complete! Your journey was brave.",
       timeRemaining: "Time on the road"
     },
+    checkIn: {
+      keepGoing: "I'm on it!",
+      blocked: "I'm stuck",
+      needBreak: "Need a break",
+      consultingMap: "Consulting the mission map...",
+      acceptRoute: "Accept new route",
+      keepOriginal: "Keep original plan",
+      fallbackMessage: "Your adventure companion approaches and asks how the mission is going...",
+      fallbackMicro1: "Open the necessary material (2 min)",
+      fallbackMicro2: "Review just the first section (2 min)",
+      fallbackMicro3: "Write or solve a single item (2 min)"
+    },
     featsLog: {
       title: "Journal of Deeds",
     },
@@ -268,6 +280,18 @@ const translations = {
       resting: "Descansando junto a la fogata... MM:SS",
       sessionComplete: "¡Sesión de enfoque completada! Tu viaje ha sido valiente.",
       timeRemaining: "Tiempo en el camino"
+    },
+    checkIn: {
+      keepGoing: "¡Sigo en ello!",
+      blocked: "Estoy atascado/a",
+      needBreak: "Necesito un respiro",
+      consultingMap: "Consultando el mapa de la misión...",
+      acceptRoute: "Aceptar nueva ruta",
+      keepOriginal: "Seguir plan original",
+      fallbackMessage: "Tu compañero de aventura se acerca y pregunta cómo va la misión...",
+      fallbackMicro1: "Abre el material necesario (2 min)",
+      fallbackMicro2: "Lee o revisa solo la primera sección (2 min)",
+      fallbackMicro3: "Escribe o resuelve un solo ítem (2 min)"
     },
     featsLog: {
       title: "Diario de Hazañas",

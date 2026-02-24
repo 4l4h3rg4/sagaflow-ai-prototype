@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { SagaInput, Saga, Feedback } from '../types';
-import { generateSaga, generateFeedback, generateScenarioImage } from '../services/geminiService';
+import { generateSaga, generateFeedback, generateScenarioImage, generateCheckIn, generateMicroGoals } from '../services/geminiService';
 import { t } from '../lib/i18n';
 import { loadCurrentSession, saveCurrentSession, clearCurrentSession, saveSagaToHistory } from '../lib/persistence';
 
@@ -31,6 +31,14 @@ export const useSagaGamification = (language: 'en' | 'es') => {
   const updateTimerState = useCallback((newState: Partial<typeof timerState>) => {
     setTimerState(prev => ({ ...prev, ...newState }));
   }, []);
+
+  // Check-In States
+  const [showCheckIn, setShowCheckIn] = useState<boolean>(false);
+  const [checkInMessage, setCheckInMessage] = useState<string | null>(null);
+  const [microGoals, setMicroGoals] = useState<{ step1: string, step2: string, step3: string } | null>(null);
+  const [isLoadingMicroGoals, setIsLoadingMicroGoals] = useState<boolean>(false);
+  const lastActivityRef = useRef<number>(Date.now());
+  const isGeneratingCheckInRef = useRef<boolean>(false);
 
   // Visuals & Feedback
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -178,6 +186,104 @@ export const useSagaGamification = (language: 'en' | 'es') => {
     return () => clearInterval(interval);
   }, [timerState.isRunning, isRestoring, isLoading]);
 
+  // Activity tracker for Check-in
+  useEffect(() => {
+    if (!mission || !timerState.isRunning || timerState.isOnBreak || timerState.remainingSeconds <= 0) return;
+
+    const handleActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    const options = { passive: true };
+    document.addEventListener('click', handleActivity, options);
+    document.addEventListener('scroll', handleActivity, options);
+    document.addEventListener('keydown', handleActivity, options);
+    document.addEventListener('touchstart', handleActivity, options);
+
+    return () => {
+      document.removeEventListener('click', handleActivity);
+      document.removeEventListener('scroll', handleActivity);
+      document.removeEventListener('keydown', handleActivity);
+      document.removeEventListener('touchstart', handleActivity);
+    };
+  }, [mission, timerState.isRunning, timerState.isOnBreak, timerState.remainingSeconds]);
+
+  // Inactivity Detector
+  useEffect(() => {
+    console.log("[CHECKIN] useEffect entry", {
+      hasMission: !!mission,
+      isRunning: timerState.isRunning,
+      isOnBreak: timerState.isOnBreak,
+      remainingSeconds: timerState.remainingSeconds,
+      hasPendingTasks: mission?.objectives?.some(o => !o.completed)
+    });
+
+    if (!mission || !timerState.isRunning || timerState.isOnBreak || timerState.remainingSeconds <= 0 || showCheckIn) return;
+
+    const interval = setInterval(async () => {
+      console.log("Checking inactivity...", {
+        timeSinceActivity: Date.now() - lastActivityRef.current,
+        showCheckIn,
+        isRunning: timerState.isRunning,
+        isOnBreak: timerState.isOnBreak,
+        remaining: timerState.remainingSeconds,
+        hasPendingTasks: mission?.objectives.some(o => !o.completed)
+      });
+
+      if (Date.now() - lastActivityRef.current >= 30000 && !showCheckIn && !isGeneratingCheckInRef.current) {
+        console.log("TRIGGERING CHECK-IN");
+        const incompleteObjective = mission.objectives.find(o => !o.completed);
+        if (!incompleteObjective) return;
+
+        isGeneratingCheckInRef.current = true;
+
+        try {
+          // Promise that resolves with false if > 10s
+          const timeoutPromise = new Promise<{ timeout: boolean }>(resolve => setTimeout(() => resolve({ timeout: true }), 10000));
+          const generationPromise = generateCheckIn(
+            sagaInput.theme || 'adventure',
+            mission.scenario,
+            incompleteObjective.originalTask,
+            incompleteObjective.missionTask,
+            language
+          );
+
+          const result = await Promise.race([generationPromise, timeoutPromise]);
+          let message = result === null || (result && typeof result === 'object' && 'timeout' in result) ? null : result;
+
+          if (!message) {
+            message = t('checkIn.fallbackMessage', language);
+          }
+
+          if (isMountedRef.current) {
+            setCheckInMessage(message as string);
+            setShowCheckIn(true);
+          }
+        } catch (err) {
+          if (isMountedRef.current) {
+            setCheckInMessage(t('checkIn.fallbackMessage', language));
+            setShowCheckIn(true);
+          }
+        } finally {
+          isGeneratingCheckInRef.current = false;
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [mission, timerState.isRunning, timerState.isOnBreak, timerState.remainingSeconds, showCheckIn, sagaInput.theme, language]);
+
+  // Close popup if timer ends while open
+  useEffect(() => {
+    if (showCheckIn && timerState.remainingSeconds <= 0) {
+      setShowCheckIn(false);
+      setCheckInMessage(null);
+      setMicroGoals(null);
+      setIsLoadingMicroGoals(false);
+      isGeneratingCheckInRef.current = false;
+    }
+  }, [showCheckIn, timerState.remainingSeconds]);
+
 
   // --- Logic ---
 
@@ -285,6 +391,10 @@ export const useSagaGamification = (language: 'en' | 'es') => {
     });
     setError(null);
     setCompletedFeats([]);
+    setShowCheckIn(false);
+    setCheckInMessage(null);
+    setMicroGoals(null);
+    setIsLoadingMicroGoals(false);
     setBackgroundOpacity(0);
     setTimeout(() => { if (isMountedRef.current) setBackgroundImage(null); }, 1000);
     setFinalFeedback({ content: null, isLoading: false });
@@ -292,6 +402,7 @@ export const useSagaGamification = (language: 'en' | 'es') => {
   }, [stopLoadingCycle, mission, sagaInput, completedFeats]);
 
   const toggleObjective = useCallback((objectiveIndex: number) => {
+    lastActivityRef.current = Date.now();
     setMission(prevMission => {
       if (!prevMission) return null;
 
@@ -349,7 +460,88 @@ export const useSagaGamification = (language: 'en' | 'es') => {
   // However, saving to history uses `completedFeats`. If I don't include it, it uses stale `completedFeats`.
   // It's safer to include it.
 
-  const returnToEdit = () => setMission(null);
+  const returnToEdit = () => {
+    setMission(null);
+    setShowCheckIn(false);
+  };
+
+  // Check-In Callbacks
+  const handleCheckInDismiss = useCallback(() => {
+    setShowCheckIn(false);
+    setCheckInMessage(null);
+    setMicroGoals(null);
+    setIsLoadingMicroGoals(false);
+    lastActivityRef.current = Date.now();
+  }, []);
+
+  const handleCheckInBlocked = useCallback(async () => {
+    setIsLoadingMicroGoals(true);
+    if (!mission) return;
+
+    const incompleteObjective = mission.objectives.find(o => !o.completed);
+    if (!incompleteObjective) {
+      setIsLoadingMicroGoals(false);
+      return;
+    }
+
+    try {
+      const timeoutPromise = new Promise<{ timeout: boolean }>(resolve => setTimeout(() => resolve({ timeout: true }), 10000));
+      const generationPromise = generateMicroGoals(
+        sagaInput.theme || 'adventure',
+        mission.scenario,
+        incompleteObjective.originalTask,
+        incompleteObjective.missionTask,
+        language
+      );
+
+      const result = await Promise.race([generationPromise, timeoutPromise]);
+      let goals = result === null || (result && typeof result === 'object' && 'timeout' in result) ? null : result;
+
+      if (goals && isMountedRef.current) {
+        setMicroGoals(goals as { step1: string, step2: string, step3: string });
+      } else if (isMountedRef.current) {
+        setMicroGoals({
+          step1: t('checkIn.fallbackMicro1', language),
+          step2: t('checkIn.fallbackMicro2', language),
+          step3: t('checkIn.fallbackMicro3', language),
+        });
+      }
+    } catch {
+      if (isMountedRef.current) {
+        setMicroGoals({
+          step1: t('checkIn.fallbackMicro1', language),
+          step2: t('checkIn.fallbackMicro2', language),
+          step3: t('checkIn.fallbackMicro3', language),
+        });
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoadingMicroGoals(false);
+      }
+    }
+  }, [mission, sagaInput.theme, language]);
+
+  const handleCheckInBreak = useCallback(() => {
+    updateTimerState({ isOnBreak: true, breakRemaining: 300 });
+    handleCheckInDismiss();
+  }, [updateTimerState, handleCheckInDismiss]);
+
+  const handleAcceptMicroGoals = useCallback((goals: { step1: string, step2: string, step3: string }) => {
+    setMission(prevMission => {
+      if (!prevMission) return null;
+      const newObjectives = [...prevMission.objectives];
+      const index = newObjectives.findIndex(o => !o.completed);
+      if (index !== -1) {
+        newObjectives.splice(index, 1,
+          { originalTask: "[micro] " + goals.step1, missionTask: goals.step1, completed: false },
+          { originalTask: "[micro] " + goals.step2, missionTask: goals.step2, completed: false },
+          { originalTask: "[micro] " + goals.step3, missionTask: goals.step3, completed: false }
+        );
+      }
+      return { ...prevMission, objectives: newObjectives };
+    });
+    handleCheckInDismiss();
+  }, [handleCheckInDismiss]);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -378,11 +570,21 @@ export const useSagaGamification = (language: 'en' | 'es') => {
     timerState,
     updateTimerState,
     timerIsOnBreak: timerState.isOnBreak,
+    checkInState: {
+      showCheckIn,
+      checkInMessage,
+      microGoals,
+      isLoadingMicroGoals
+    },
     actions: {
       generateMission,
       clearAll,
       toggleObjective,
-      returnToEdit
+      returnToEdit,
+      handleCheckInDismiss,
+      handleCheckInBlocked,
+      handleCheckInBreak,
+      handleAcceptMicroGoals
     }
   };
 };

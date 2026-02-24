@@ -24,7 +24,7 @@ function getApiKey(): string | undefined {
 // Gemini sometimes wraps responses in markdown code blocks despite responseSchema.
 function cleanAndParseJson(text: string): any {
   let cleanText = text.trim();
-  
+
   // Remove markdown code blocks if present
   if (cleanText.startsWith('```json')) {
     cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
@@ -75,15 +75,15 @@ Generarás un título y un mensaje épicos y temáticos para el usuario.
 export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Promise<Saga> {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error("API Key missing. Please configure your API_KEY in the environment.");
-  
+
   const ai = new GoogleGenAI({ apiKey });
 
   let userPrompt = `$LANGUAGE: "${language}"\n$THEME: "${input.theme}"\n$TASKS: ${JSON.stringify(input.tasks.filter(t => t.trim()))}`;
-  
+
   if (input.prompt) {
     userPrompt += `\n$PROMPT: "${input.prompt}"`;
   }
-  
+
   const nonEmptyConstraints = input.constraints.filter(c => c.trim());
   if (nonEmptyConstraints.length > 0) {
     userPrompt += `\n$CONSTRAINTS: ${JSON.stringify(nonEmptyConstraints)}`;
@@ -121,7 +121,7 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
         }
       }
     });
-    
+
     // Use robust parsing
     const parsedSaga = cleanAndParseJson(response.text);
 
@@ -131,11 +131,11 @@ export async function generateSaga(input: SagaInput, language: 'en' | 'es'): Pro
     };
 
     return sagaWithCompletion;
-    
+
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     if (error instanceof Error && error.message.includes("scroll is unreadable")) {
-        throw error;
+      throw error;
     }
     throw new Error("Failed to generate saga. The connection to the storyteller was lost.");
   }
@@ -145,7 +145,7 @@ export async function generateScenarioImage(theme: string, scenario: string): Pr
   const apiKey = getApiKey();
   if (!apiKey) return null;
   const ai = new GoogleGenAI({ apiKey });
-  
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -160,18 +160,18 @@ export async function generateScenarioImage(theme: string, scenario: string): Pr
     });
 
     if (response.candidates && response.candidates.length > 0) {
-        for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-                const base64EncodeString = part.inlineData.data;
-                const mimeType = part.inlineData.mimeType || 'image/png';
-                return `data:${mimeType};base64,${base64EncodeString}`;
-            }
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          const base64EncodeString = part.inlineData.data;
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          return `data:${mimeType};base64,${base64EncodeString}`;
         }
+      }
     }
     return null;
   } catch (error) {
     console.error("Error generating image:", error);
-    return null; 
+    return null;
   }
 }
 
@@ -180,7 +180,7 @@ export async function generateNarratorAudio(text: string, language: 'en' | 'es')
   const apiKey = getApiKey();
   if (!apiKey) return null;
   const ai = new GoogleGenAI({ apiKey });
-  
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
@@ -188,9 +188,9 @@ export async function generateNarratorAudio(text: string, language: 'en' | 'es')
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Fenrir' }, 
-            },
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: 'Fenrir' },
+          },
         },
       },
     });
@@ -244,5 +244,71 @@ export async function generateFeedback(input: {
   } catch (error) {
     console.error("Error calling Gemini API for feedback:", error);
     throw new Error("The storyteller is momentarily silent.");
+  }
+}
+
+export async function generateCheckIn(
+  theme: string,
+  scenario: string,
+  pendingTaskOriginal: string,
+  pendingTaskMission: string,
+  language: 'en' | 'es'
+): Promise<string | null> {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+  const ai = new GoogleGenAI({ apiKey });
+
+  const userPrompt = `Eres SagaCore. El usuario está en una aventura con tema '${theme}'. El escenario actual es: '${scenario}'. Parece que se ha detenido en esta parte de la misión: '${pendingTaskMission}' (tarea real: '${pendingTaskOriginal}'). Genera un mensaje CORTO (máximo 3 oraciones) EN PERSONAJE del tema, preguntando amablemente cómo va. NO preguntes '¿sigues ahí?' de forma genérica. Haz referencia al escenario y a la tarea de forma natural y narrativa. Usa el idioma: ${language}.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: userPrompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 0 }
+      }
+    });
+    return response.text || null;
+  } catch (error) {
+    console.error("Error generating check-in:", error);
+    return null;
+  }
+}
+
+export async function generateMicroGoals(
+  theme: string,
+  scenario: string,
+  taskOriginal: string,
+  taskMission: string,
+  language: 'en' | 'es'
+): Promise<{ step1: string, step2: string, step3: string } | null> {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+  const ai = new GoogleGenAI({ apiKey });
+
+  const userPrompt = `Eres SagaCore. El usuario está bloqueado en esta tarea: '${taskOriginal}' (versión misión: '${taskMission}'). Tema: '${theme}'. Divide esta tarea en exactamente 3 micro-pasos de ~2 minutos cada uno. Cada paso debe ser concreto y accionable. Mantén el tono narrativo del tema '${theme}' pero que los pasos sean CLAROS sobre qué hacer en la vida real. Responde en idioma: ${language}.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: userPrompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            step1: { type: Type.STRING },
+            step2: { type: Type.STRING },
+            step3: { type: Type.STRING }
+          },
+          required: ["step1", "step2", "step3"]
+        }
+      }
+    });
+
+    return cleanAndParseJson(response.text);
+  } catch (error) {
+    console.error("Error generating micro-goals:", error);
+    return null;
   }
 }
